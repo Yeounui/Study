@@ -4,7 +4,7 @@ This is an archive of programming what I have studied in university. It includes
 
 
 ```bash
-study
+Study
 ├─ Assignments   
 │  ├─ Bioinformatics   
 │  ├─ Informatics   
