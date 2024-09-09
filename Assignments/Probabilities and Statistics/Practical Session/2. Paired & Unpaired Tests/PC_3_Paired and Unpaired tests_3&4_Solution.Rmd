@@ -1,0 +1,254 @@
+---
+title: "PC practical: Paired and unpaired tests (1)"
+output: html_document
+---
+
+## Exercise 3
+We want to examine the influence of administering 100 g glucose on the glucose level in the blood of diabetic patients. Using confidence intervals we will try to formulate a conclusion on this research question.
+The glucose level of 8 diabetic patients was measured in mmol/l, both before and 1 hour after administration of 100 g glucose. The following table gives the concentration plasma glucose in mmol/l for all 8 patients. The data can also be found in the file glucose.dat.
+
+Read in dataset glucose.dat via the following command (pay attention to the
+directory)
+
+```{r}
+glucose = read.table("glucose.dat", header = TRUE)
+attach(glucose)
+```
+
+### Question 1
+Draw a dotplot of the paired outcomes. Describe what you see.
+```{r}
+# t: transpose the rows and columns of the matrix
+# ts: is used to create time-series object
+t=ts(t(cbind(before, after)))
+t
+plot.ts(t, plot.type = "single", type = "o") # Designed specially for ts objects
+```
+
+### Question 2
+First calculate the differences in plasma glucose.
+```{r}
+diff = after - before
+diff
+```
+
+### Question 3
+Calculate the standard error of the mean difference in plasma glucose. What does the standard error mean in this case?
+
+Standard error of the mean difference in glucose level = SE = $\dfrac{sd}{\sqrt{n}}$
+```{r}
+# calculate mean and standard error
+mean(diff)
+sd(diff)/sqrt(8) # m = mean(diff) ; n = nrow(m) ; sd(diff)/sqrt(n)
+```
+
+### Question 4
+Construct a 95% confidence interval for the mean in expected concentrations ‘after - before’ based on this new variable.
+
+Calculate 95% confidence interval for the mean difference in glucose level (after-before)
+```{r}
+t.test(diff)
+```
+Does it contain 0? Conclusion? 
+
+...
+
+one-sample t-test on the difference
+
+$H_0$: mean difference = 0
+
+$H_A$: mean difference $\neq$ 0
+
+p-value? Conclusion?
+
+...
+
+### Question 5
+Alternative way is paired t-test on before and after
+```{r}
+t.test(before, after, paired = TRUE)
+```
+Same conclusion?
+
+Conditions for this test (one-sample t-test on difference or paired t-test on before and after)
+- Data paired 1 to 1
+- Independent patients
+- Difference normally distributed
+
+```{r}
+# qq-plot
+qqnorm(diff)
+qqline(diff)
+```
+
+### Question 6
+General conclusion with respect to the administration of glucose to diabetes patients?
+Administering glucose increases the mean glucose level and thus has a significant effect at the 5% significance level. 
+
+### Question 7
+Now assume that the data in the above table are obtained from 16 different patients where for half of them the measurement was taken before and for the other half after giving the glucose. What is now the 95% confidence interval for the difference ‘after 􀀀 before’ in expected concentrations glucose.
+
+Suppose there were 16 different patients = unpaired data 
+Calculate 95% confidence interval for mean difference in glucose level (after-before)
+
+-> unpaired t-test
+
+-> conditions:
+- independent groups
+- independent patients in each group
+- glucose level before and glucose level after normally distributed
+
+```{r}
+# qq plots of before, and after
+par(mfrow=c(1,2))
+qqnorm(before)
+qqline(before)
+qqnorm(after)
+qqline(after)
+```
+
+- Optional: are population variances glucose level before and after equal?
+
+```{r}
+boxplot(cbind(before, after), names = c("before", "after"))
+var.test(before, after)
+```
+
+=> unpaired t-test without assumption of equal population variances (Welch t-test)
+```{r}
+# t.test()
+t.test(before, after, paired = FALSE, var.equal = FALSE)
+```
+Conclusion?
+
+...
+
+### Question 8
+Does question 7 (new results) change the conclusion?
+
+
+### Question 9
+Paired or unpaired design (2 identical or 2 different groups) most appropriate? Why?
+More information can be used from the data by applying a paired t-test. The
+standard error on the mean difference is smaller than the standard error of the
+difference between the two means when using an unpaired test, i.e.,
+$\frac{\sigma_1^2}{n} + \frac{\sigma_2^2}{n} - 2\text{Cor}(X_1,X_2)\frac{\sigma_1\sigma_2}{n}$
+is smaller than $\frac{\sigma_1^2}{n} + \frac{\sigma_2^2}{n}$, when
+$\text{Cor}(X_1,X_2)$ is positive.
+
+
+## Exercise 4
+For this exercise we will examine part of the SUPPORT dataset. Based on these data we would like to determine whether or not the mean glucose level in the blood differs between men and women. The data we will examine can be found in the file support.dat. It contains 2 variables: glucose, which is the glucose level in the blood on the third day of the study, and gender, which can take on 2 values (0: man; 1: woman).
+
+Read in dataset support.dat via the following command (pay attention to the directory)
+
+```{r}
+support = read.table("support.dat", sep = " ", header = TRUE)
+rm(glucose)
+attach(support)
+```
+
+### 1) Exploration of the data
+(a) Mean glucose level for men and women
+```{r}
+mean(glucose[gender==0], na.rm = T) # Remove NA values from calculations --> Skip NA values
+mean(glucose[gender==1], na.rm = T)
+```
+
+(b) Compare distribution glucose level of men and women using figure
+
+```{r}
+boxplot(glucose ~ gender, xlab = "Gender", ylab = "Glucose")
+```
+
+Is mean a meaningful measure to describe the distribution of the glucose level?
+
+### 2) Check assumptions of the test
+(a) Are the data paired or unpaired? What assumptions are made when performing a test for the mean difference in glucose level in the blood between men and women?
+
+Verify conditions of the test using QQ-Plot
+
+- independent groups
+- independent subjects in each group
+- glucose level for men and women normally distributed
+- optional: equal variances of glubose level for men and women
+
+```{r}
+par(mfrow=c(1,2))
+qqnorm(glucose[gender==0])
+qqline(glucose[gender==0])
+qqnorm(glucose[gender==1])
+qqline(glucose[gender==1])
+
+var.test(glucose[gender==0], glucose[gender==1])
+var.test(glucose ~ gender)
+```
+
+(b) Transformation of the data by creating a new variable that contains the (natural) logarithm of the glucose level in the blood.
+
+```{r}
+lglucose = log(glucose)
+```
+
+(c) Check again if the assumptions are met. Do you see any improvement?
+- independent groups
+- independent subjects in each group
+- log glucose level normally distributed
+
+```{r}
+# qq plots
+par(mfrow=c(1,2))
+qqnorm(lglucose[gender==0])
+qqline(lglucose[gender==0])
+qqnorm(lglucose[gender==1])
+qqline(lglucose[gender==1])
+```
+
+(d) Test whether the variance of lglucose is equal for men and women.
+
+```{r}
+# test of equality of variances
+var.test(lglucose ~ gender)
+par(mfrow=c(1,1))
+boxplot(lglucose ~ gender)
+```
+
+### 3) Perform the test
+(a) Null hypothesis and alternative hypothesis?
+
+$H_0$: mean glucose level men = mean glucose level women
+
+$H_A$: mean glucose level men $\neq$ mean glucose level women
+
+(b) Execute test
+```{r}
+t.test(lglucose ~ gender, var.equal = TRUE, paired = FALSE)
+```
+Conclusion? Interpretation corresponding 95% confidence interval?
+
+...
+
+(c) Transform obtained confidence interval back to scale of the original measurements
+Suppose $X_M$: glucose level men
+
+and $X_W$: glucose level women
+
+Set $\mu_{lM}$ = mean of ln(glucose) for men
+
+and $\mu_{lW}$ = mean of ln(glucose) for women
+
+Known: 95% CI for $\mu_{lM}-\mu_{lW}=[L,R]$
+
+=> $P(L\leq \mu_{lM}-\mu_{lW} \leq R)=0.95$
+
+<=> $P(e^L\leq e^{\mu_{lM}-\mu_{lW}} \leq e^R)=0.95$
+
+<=> $P(e^L\leq \dfrac{e^{\mu_{lM}}}{e^{\mu_{lW}}} \leq e^R)=0.95$
+
+Hence: $[e^L,e^R]$ is the 95% CI for $\dfrac{e^{\mu_{lM}}}{e^{\mu_{lV}}}$ = geometric mean of $X_M$ / geometric mean of $X_W$
+
+=> 95% CI for the ratio of the geometric means of the glucose level for men and women = $[e^{-0.105},e^{0.058}]$ = [0.900, 1.059] 
+
+Since 1 $\in$ this CI are the geometric means of the glucose level for men and women not significantly different at the 5% significance level.
+
+

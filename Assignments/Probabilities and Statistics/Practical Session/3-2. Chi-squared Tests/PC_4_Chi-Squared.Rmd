@@ -1,0 +1,162 @@
+---
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# PC-practicum : Chi-square tests
+
+## Exercise 11
+
+Elephants live in different types of herds. Female elephants live in family groups with related female elephants and their offspring, either without any males (Family group) or with a male elephant (Family with male). Male elephants live mostly alone (Solitary), or in the company of other male elephants without females (Group of males). Researchers in the Mikumi National Park in Tanzania have investigated if there is an association between the different types of herding and the seasons, as part of a large study on the largest remaining popluation of African elephants.
+April Ereckson observed a number of elephant herds in dry and wet seasons during 1998-1999 (Ereckson, 2001).
+
+We assume the data are independent given both categorical variables.
+
+**We want to examine if herding type depends on the season. Specify $H_0$ and $H_A$, and the statistical test you will use.**
+
+...
+
+**Test at the 5\% significance level if herding type depends on the season**
+
+* Represent the data in <tt>R</tt> as a 2 x 4 table with 2 rows for the 2 seasons and 4 columns for the 4 herding types.
+```{r}
+# some code here: use m <- matrix(...)
+m <- matrix(c(196, 7, 43, 4, 195, 8, 92, 17), 
+            ncol = 4, byrow = TRUE)
+m
+```
+
+* Do the test.
+```{r}
+# use chisq.test(m, correct = FALSE)
+chisq.test(m, correct = FALSE)
+```
+
+* What is your conclusion?  
+  ...
+  
+**Now do a post-hoc analysis** in which you compare the herding types pairwise, at an overall 5\% significance level. Do it only for the comparison between 'Family with male' and 'Group of males'.
+
+```{r}
+# some code here
+```
+
+* You will get the following warning:
+```
+Warning message:
+Chi-squared approximation may be incorrect in:
+chisq.test(m, correct = TRUE)
+```
+* What does this mean? To mitigate this you can use a Fisher's Exact Test instead of a Chi-square Test:  
+```{r}
+# use fisher.test(m)
+```
+
+* What can you conclude at the 5\% significance level?
+
+**Make a comparison between the 2 family groups and the 2 categories with only males.**
+
+* Reformat the data as a 2 x 2 contingency table (2 rows for seasons, 2 rows for herding types)
+
+```{r}
+# some code here
+```
+
+* Test if the herding types are dependent on the season, at a significance level of 5\%.
+
+```{r}
+# some code here
+```
+
+* What is your conclusion?  
+  ...
+  
+## Exercise 12
+
+Assume a biologist has two maps covering the same region. One map shows the suitability of the soil to be used for agriculture (Fertile, Moderately Fertile, Not Fertile), the other map shows the general soil type (Alfisols, Spodosols). We want to examine the spatial relationship between these 2 maps. Consider the table below with some fictitious data of 106 soil types. Here, with soil type we mean soils which share similar physical, chemical and biological characteristics. Soils differ from each other from place to place, depending on topography, natural drainage, natural vegetation and climate.
+
+### Question 1
+**We want to examine if fertility of the soil is dependent on the soil type. Specify $H_0$ and $H_A$, and the statistical test you will use.**
+
+...
+
+### Question 2
+**Test at the 5\% significance level if fertility of the soil is dependent on the soil type.**
+
+* Create a dataframe with columns <tt>Soil</tt>, <tt>Fertility</tt> and <tt>Count</tt>. 
+```{r}
+# soil <- data.frame(Soil = c(1, 1, 1, 2, 2, 2), Fertility = c(1, 2, 3, 1, 2, 3), Count = c(13, 24, 18, 19, 20, 12))
+```
+* Create a contingency table like this.
+```{r}
+# soiltbl <- xtabs(Count ~ Soil + Fertility, data = soil)
+```
+* Perform the test. This time just do:
+```{r}
+# summary(soiltbl)
+```
+
+### Question 3
+**Now make the comparison between fertile (very or moderately) and not fertile.**
+
+* Test at the 5\% significance level if the fertility is dependent on the soil type.
+
+```{r}
+# some code here
+```
+
+* What is your conclusion?  
+  ...
+
+* Check the assumptions for performing this test  
+    - ... 
+    - ...
+
+### Question 4
+**What is the percentage of Spodosols that are fertile? What is the percentage of infertile soils that are Alfisols?**
+  ...
+
+### Question 5
+* Estimate the **relative risk** for a soil to be fertile (very or moderately) for Alfisols versus Spodisols and get the confidence interval for this relative risk. You can use:
+
+```{r}
+# require(epitools)
+# epitab(c(x11, x12, x21, x22), method = "riskratio", conf.level = 0.95)
+```
+***Important note:** The relative risk for soil to be an Alfisol for fertile versus infertile soils doesn't have a meaning, because the number of Alfisols and Spodosols was chosen!*
+
+* Interpret the obtained confidence interval. Can you conclude that the soil type doesn't have an influence on the fertility? Explain.  
+  ...
+
+### Question 6
+* Estimate the **odds ratio** of being fertile, for Alfisols versus Spodosols, and estimate a 95\% confidence interval for this odds ratio.
+```{r}
+# some code here
+```
+
+* Interpret the confidence interval.  
+  ...
+
+* Which of both measures of association seems the most appropriate to you to report?  
+  ...
+
+
+## Exercise 13
+
+For three different medical treatments A, B and C the success of the treatment was
+observed, with the results.
+
+### Question 1
+**Explain what independence between the rows and columns means in this case.**  
+...
+
+### Question 2
+**Test the above hypothesis, at the 5\% significance level, and at the 1\% significance level.**  
+...
+
+### Question 3
+**Perform a post-hoc analysis, continuing at the overall 5\% significance level, where you compare the treatments pairwise. Use a Bonferroni correction. What can you conclude?**  
+...
+

@@ -1,0 +1,431 @@
+---
+title: "**Project 1:Statistical Testing**"
+author: "Seungchan Oh (01603277), Gahyun Choi (01614413)"
+date: '1th March 2021'
+output: html_document
+---
+  ```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE}
+BP <- read.delim("BP.txt", header = TRUE, sep = "\t", dec = ".")
+attach(BP)
+```
+
+## **Introduction**
+
+There are mainly two methods in calculating the systolic and diastolic blood pressures: using Manual Auscultation Method of Korotkoff sound or using automated devices.  Before the measurement, some experts rated the likeliness of cardiovascular diseases for each patient. This Project is an analysis for the considerable relation between blood pressure from the Korotkoff sounds measurement and the cardiovascular risk assessment.
+
+<br />
+  
+  
+## **Dataset description**
+  
+  Given dataset consists of observations for 75 patients. Their Korotkoff score, long-term mean blood pressure and cardiovascular risk were measured or evaluated. These values are divided into two: systolic and diastolic pressure. The sex of each patients is also indicated.
+
+  | Name            | Characteristics                                                            | Type       |
+  | -------------   |:---------------------------------------------------------------------------| :----------|
+  | KorotkoffLASys  | Korotkoff scores based on systolic pressure                                | Discrete   |
+  | KorotkoffLADias | Korotkoff scores based on diastolic pressure                               | Discrete   |
+  | Sex             | F = Female or M = Male                                                     | Nominal    |
+  | RiskSystolic    | Cardiovascular risk based on systolic pressure (a number between 0 and 9)  | Ordinal    |
+  | RiskDiastolic   | Cardiovascular risk based on diastolic pressure (a number between 0 and 9) | Ordinal    |
+  | LongTermMeanSys | Long-term mean of systolic blood pressure                                  | Discrete   |
+  | LongTermMeanDias| Long term mean of diastolic blood pressure                                 | Discrete   |
+  
+  <br />
+  
+## **Q1**
+  >What is the format of the first line? What does it represent?
+  
+  Box head. The first line represents informative references for each column of data. This line is crucial in analysis program since it gives the variables their name when using the program such as Rstudio. Not only that, but it also lets the dataset be recognizable to the researcher who is performing the analysis.
+
+<br />
+  
+## **Q2**
+  >What is the format of the following lines? What do they represent?
+  
+  Body. There contains values from observation or experiment. For each following line the information of each 75 patients is listed. 
+For example, using the second line, we know that the patient is male with Systolic pressure 192 and Diastolic pressure of 82, both measured with Korotkoff score. The experts say his risk to cardiovascular diseases is 7 based on systolic pressure, and 3 based on diastolic pressure. His blood pressure can also be compared with  the long-term average blood pressure, which is shown in the next part of the listed information. The diastolic pressure shows more difference (7) between the normal measurement and the long-term measurement than that of systolic pressure (4).
+Like such, the following lines become the basis of our analysis.
+
+<br />
+  
+## **Q3**
+  >Analyze the frequency table for the variable sex. Are both groups well represented? Would
+you suggest any modifications in the statistical design?
+  
+  ```{r, echo=FALSE}
+library(knitr)
+
+Sex <- factor(Sex, levels = c("M", "F"))
+kable(table(Sex))
+```
+The imbalanced size between two analysis groups can lead to less precise estimation of effect. To correct samples balanced, not only collecting the same number of observations, we could also introduce a concept of experimental units which clusters a certain number of measurements into the same group size.
+
+<br />
+  
+## **Q4**
+  >How are the patients distributed over the risk categories? Consider the systolic and the
+diastolic blood pressure separately. Does it make sense to regulate these distributions through the
+statistical design? Explain your answer.
+
+### {.tabset}
+
+#### RiskSystolic
+```{r, echo=FALSE, fig.height=3, fig.width=9}
+par(mfrow=c(1,3))
+hist(RiskSystolic, main="histogram", col="#F0992A", xlim=c(0,9), xaxp=c(0,9,3), ylim= c(0,18), yaxp=c(0,18,6))
+plot(density(RiskSystolic, from=0, to=9), xlim=c(0,9), xaxp=c(0,9,3), ylim = c(0, 0.20), main = "Kernel density estimator")
+boxplot(RiskSystolic, xaxp=c(0,9,3), main = "Boxplot", col="#F0992A", horizontal=TRUE)
+
+```
+
+#### RiskDiastolic
+```{r, echo=FALSE, fig.height=3, fig.width=9}
+par(mfrow=c(1,3))
+hist(RiskDiastolic, main="histogram", col="#89EBA3", xlim=c(0,9), xaxp=c(0,9,3), ylim= c(0,18), yaxp=c(0,18,6))
+plot(density(RiskDiastolic, from=0, to=9), xlim=c(0,9), xaxp=c(0,9,3), ylim = c(0, 0.20), main = "Kernel Density estimator")
+boxplot(RiskDiastolic, ylim=c(0,9), xaxp=c(0,9,3), main = "Boxplot", col="#89EBA3", horizontal=TRUE)
+```
+
+
+### {-}
+
+------------------------------------------------------------
+  
+  In terms of RiskSystolic, the boxplot clearly shows the distribution is right-skewed. On the other hand, the distribution of RiskDiastolic is slightly left-skewed, as the kernel density estimator indicates. Therefore the data need to be transformed for further analysis.
+
+<br />
+  
+## **Q5**
+  >Use boxplots of the Korotkoff score to check differences among sex. Consider the systolic and
+the diastolic blood pressure separately. Discuss your findings.
+
+```{r, echo=FALSE}
+KorotkoffLA <- cbind(KorotkoffLASys, KorotkoffLADias)
+boxplot(KorotkoffLA, main="Korotkoff scores among sex", ylab="Korotkoff scores", boxfill = NA, border = NA)
+boxplot(KorotkoffLA[Sex=="M",], xaxt = "n", yaxt="n", add = TRUE, boxfill="#6EBDFF", boxwex=0.25, at = 1:ncol(KorotkoffLA) - 0.15)
+boxplot(KorotkoffLA[Sex=="F",], xaxt = "n", yaxt="n", add = TRUE, boxfill="#FC565C", boxwex=0.25, at = 1:ncol(KorotkoffLA) + 0.15)
+legend(2.25, 9, c("Male", "Female"), fill = c("#6EBDFF", "#FC565C"))
+
+```
+
+Considering the inter-quartile range and whiskers, both sexes seem to have a similar distribution for Korotkoff scores of diastolic and systolic blood pressure.
+
+<br />
+  
+## **Q6**
+  >Formalize the visual conclusions of the previous question by means of the appropriate
+statistical tests supported by descriptive statistics. Give null and alternative hypotheses for the different tests, explain why you perform these tests and formulate a clear and descriptive answer for each of the tests. Pay attention to the exact wording of your conclusions.
+
+Each group of sex is independent, and subjects in each group are also independent.
+
+### **Normality**
+
+Before the analysis of descriptive statistics are executed, it is necessary to verify the normality of distribution.
+
+### {.tabset}
+
+#### Systolic blood pressure
+```{r, echo=FALSE}
+par(mfrow=c(2,2))
+qqnorm(KorotkoffLASys[Sex=='M'], main = "Sys/Male");
+qqline(KorotkoffLASys[Sex=='M'], col="#6EBDFF",lwd=1,lty=2)
+qqnorm(KorotkoffLASys[Sex=='F'], main="Sys/Female");
+qqline(KorotkoffLASys[Sex=='F'], col="#FC565C",lwd=1,lty=2)
+qqnorm(log(KorotkoffLASys[Sex=='M']), main = "log(Sys)/Male");
+qqline(log(KorotkoffLASys[Sex=='M']), col="#6EBDFF",lwd=1,lty=2)
+qqnorm(log(KorotkoffLASys[Sex=='F']), main="log(Sys)/Female");
+qqline(log(KorotkoffLASys[Sex=='F']), col="#FC565C",lwd=1,lty=2)
+```
+
+#### Diastolic blood pressure
+
+```{r, echo=FALSE}
+par(mfrow=c(2,2))
+qqnorm(KorotkoffLADias[Sex=='M'], main = "Dias/Male");
+qqline(KorotkoffLADias[Sex=='M'], col="#6EBDFF",lwd=1,lty=2)
+qqnorm(KorotkoffLADias[Sex=='F'], main="Dias/Female");
+qqline(KorotkoffLADias[Sex=='F'], col="#FC565C",lwd=1,lty=2)
+qqnorm(log(KorotkoffLADias[Sex=='M']), main = "log(Dias)/Male");
+qqline(log(KorotkoffLADias[Sex=='M']), col="#6EBDFF",lwd=1,lty=2)
+qqnorm(log(KorotkoffLADias[Sex=='F']), main="log(Dias)/Female");
+qqline(log(KorotkoffLADias[Sex=='F']), col="#FC565C",lwd=1,lty=2)
+```
+
+### {-}
+
+According to Q-Q plots of male, they are right skewed, therefore it is better to apply logarithmic transformation. Both types of logarithmic blood pressure for each sex shows more normally distributed.
+
+### **F-test for variance comparison**
+
+Before t-test is performed to compare means of each group, the homogeneity of two variances should be investigated by F-test as it determines strategy of analysis. The null hypothesis $H_0$ and alternative hypothesis $H_A$ of this F-test are,
+
+#### {.tabset}
+
+##### Systolic blood pressure
+
+>**$H_0: σ_{log(Sys), M}^2 = σ_{log(Sys), F}^2$** <br /> The variances of both sex for logarithmic systolic blood pressure are equal. <br /> **$H_A: σ_{log(Sys), M}^2 \neq σ_{log(Sys), F}^2$** <br /> The variances of both sex for logarithmic systolic blood pressure are not equal. 
+
+```{r, echo=FALSE}
+SysVarTest=var.test(log(KorotkoffLASys)~Sex)
+SysVarTest
+fcrit1= qf(0.025, df1=43, df2=30)
+fcrit2= qf(0.975, df1=43, df2=30)
+dum=seq(0, 2.5, length=10^4)
+
+plot(dum, df(dum, df1=43, df2=30), type='l', xlab=expression(F[paste(43,",",30)]), ylab='Probability density')
+abline(v=SysVarTest$statistic, lty=2)
+
+polygon(c(0, seq(0, fcrit1, by = .001), fcrit1, fcrit1),
+        c(0, df(c(seq(0, fcrit1, by = .001), fcrit1), df1=43, df2=30), 0),
+        col = "#FF5853", border = NA)
+
+polygon(c(fcrit2, seq(fcrit2, 2.5, by = .001), 2.5, 2.5),
+        c(0, df(c(seq(fcrit2, 2.5, by = .001), 2.5), df1=43, df2=30), 0),
+        col = "#FF5853", border = NA)
+```
+
+For Korotkoff score for logarithmic systolic blood pressure, the test is two tailed, and the p-value is 0.991, which is much larger than 0.05. Therefore the null hypothesis $H_0$ is true.
+
+##### Diastolic blood pressure
+
+>**$H_0: σ_{log(Dias), M}^2 = σ_{log(Dias), F}^2$** <br /> The variances of both sex for logarithmic diastolic blood pressure are equal. <br /> **$H_A: σ_{log(Dias), M}^2 \neq σ_{log(Dias), F}^2$** <br /> The variances of both sex for logarithmic diastolic blood pressure are not equal. 
+
+```{r, echo=FALSE}
+DiasVarTest=var.test(log(KorotkoffLADias)~Sex)
+DiasVarTest
+fcrit1= qf(0.025, df1=43, df2=30)
+fcrit2= qf(0.975, df1=43, df2=30)
+dum=seq(0, 2.5, length=10^4)
+
+plot(dum, df(dum, df1=43, df2=30), type='l', xlab=expression(F[paste(43,",",30)]), ylab='Probability density')
+abline(v=DiasVarTest$statistic, lty=2)
+
+polygon(c(0, seq(0, fcrit1, by = .001), fcrit1, fcrit1),
+        c(0, df(c(seq(0, fcrit1, by = .001), fcrit1), df1=43, df2=30), 0),
+        col = "#FF5853", border = NA)
+
+polygon(c(fcrit2, seq(fcrit2, 2.5, by = .001), 2.5, 2.5),
+        c(0, df(c(seq(fcrit2, 2.5, by = .001), 2.5), df1=43, df2=30), 0),
+        col = "#FF5853", border = NA)
+```
+
+For Korotkoff score for logarithmic diastolic blood pressure, the test is two tailed, and the p-value is 0.078, which is larger than 0.05. Therefore the null hypothesis $H_0$ is true.
+
+#### {-}
+
+---------------------------------------------------------
+  
+  In a consequence, t-tests should be executed in an assumption that variances for both sex are equal.
+
+### **t-test for mean comparison**
+
+It is revealed now that both of the Korotkoff scores for sex are equally variable, so t-test will be performed without consideration of correlation. After checking each sample's normality and equal variance, t-test can be now performed. The null and alternative hypothesis for mean comparison for sex are,
+
+#### {.tabset}
+
+##### Systolic blood pressure
+
+>**$H_0: μ_{log(Sys),M} = μ_{log(Sys),F}$** <br /> The means of both sex for logarithmic systolic blood pressure are equal.<br /> **$H_A: μ_{log(Sys),M} \neq μ_{log((Sys),F}$** <br /> The means of both sex for logarithmic systolic blood pressure are not equal.
+
+```{r, echo=FALSE}
+SysTTest=t.test(log(KorotkoffLASys)~Sex, var.equal=TRUE)
+SysTTest
+tcrit1= qt(0.025, df=73)
+tcrit2= qt(0.975, df=73)
+dum=seq(-3.5, 3.5, length=10^4)
+
+plot(dum, dt(dum, df=73), type='l', xlab='t', ylab='Probability density')
+abline(v=SysTTest$statistic, lty=2)
+
+polygon(c(-3.5, seq(-3.5, tcrit1, by = .001), tcrit1, tcrit1),
+        c(0, dt(c(seq(-3.5, tcrit1, by = .001), tcrit1), df=73), 0),
+        col = "#FF5853", border = NA)
+
+polygon(c(tcrit2, seq(tcrit2, 3.5, by = .001), 3.5, 3.5),
+        c(0, dt(c(seq(tcrit2, 3.5, by = .001), 3.5), df=73), 0),
+        col = "#FF5853", border = NA)
+```
+
+For Korotkoff score for logarithmic systolic blood pressure, the test is two tailed, and the p-value is 0.816, which is much larger than 0.05 Therefore the null hypothesis $H_0$ is true.
+
+##### Diastolic blood pressure
+
+>**$H_0: μ_{log(Dias),M} = μ_{log(Dias),F}$** <br /> The means of both sex for logarithmic diastolic blood pressure are equal.<br /> **$H_A: μ_{log(Dias),M} \neq μ_{log(Dias),F}$** <br /> The means of both sex for logarithmic diastolic blood pressure are not equal.
+
+```{r, echo=FALSE}
+DiasTTest=t.test(log(KorotkoffLADias)~Sex, var.equal=TRUE)
+DiasTTest
+tcrit1= qt(0.025, df=73)
+tcrit2= qt(0.975, df=73)
+dum=seq(-3.5, 3.5, length=10^4)
+
+plot(dum, dt(dum, df=73), type='l', xlab='t', ylab='Probability density')
+abline(v=DiasTTest$statistic, lty=2)
+
+polygon(c(-3.5, seq(-3.5, tcrit1, by = .001), tcrit1, tcrit1),
+        c(0, dt(c(seq(-3.5, tcrit1, by = .001), tcrit1), df=73), 0),
+        col = "#FF5853", border = NA)
+
+polygon(c(tcrit2, seq(tcrit2, 3.5, by = .001), 3.5, 3.5),
+        c(0, dt(c(seq(tcrit2, 3.5, by = .001), 3.5), df=73), 0),
+        col = "#FF5853", border = NA)
+```
+
+ For Korotkoff score for logarithmic diastolic blood pressure, the test is two tailed, and p-value is 0.192, which is larger than 0.05. Therefore the null hypothesis $H_0$ is true.
+ 
+#### {-}
+ 
+---------------------------------------------------------
+
+ Consequently, it is statistically significant that both Korotkoff scores of systolic and diastolic blood pressure does not depend on the difference of sex.
+
+<br />
+
+## **Q7**
+>Create the boxplots of the Korotkoff score over the risk groups for a visual analysis. Consider
+the systolic and the diastolic blood pressure separately. Discuss your findings.
+
+```{r, echo=FALSE}
+par(mfrow=c(1,2))
+boxplot(KorotkoffLASys ~ RiskSystolic, col="#F0992A");
+lines(lowess(RiskSystolic, KorotkoffLASys))
+boxplot(KorotkoffLADias ~ RiskDiastolic, col="#89EBA3");
+lines(lowess(RiskDiastolic, KorotkoffLADias))
+```
+
+ Both Korotkoff scores of systolic and diastolic blood pressure increases together with the risk. They seems to be positive correlated. In addition, the diastolic score seems more deviated than systolic one.
+
+<br />
+
+## **Q8**
+>Based on the boxplots created in question 7, could you agree with the risk group assessments
+of the physicians? Do the different groups seem well defined?
+
+
+### {.tabset}
+
+#### Systolic blood pressure
+```{r, echo=FALSE}
+par(mfrow=c(1,2))
+boxplot(KorotkoffLASys ~ RiskSystolic, col="#F0992A")
+lines(lowess(RiskSystolic, KorotkoffLASys))
+boxplot(LongTermMeanSys ~ RiskSystolic, col="#E09026")
+lines(lowess(RiskSystolic, LongTermMeanSys))
+
+```
+
+```{r}
+cor(RiskSystolic, KorotkoffLASys)
+cor(RiskSystolic, LongTermMeanSys)
+```
+
+#### Diastolic blood pressure
+```{r, echo=FALSE}
+par(mfrow=c(1,2))
+boxplot(KorotkoffLADias ~ RiskDiastolic, col="#89EBA3")
+lines(lowess(RiskDiastolic, KorotkoffLADias))
+boxplot(LongTermMeanDias ~ RiskDiastolic, col="#7CD694")
+lines(lowess(RiskDiastolic, LongTermMeanDias))
+```
+
+```{r}
+cor(RiskDiastolic, KorotkoffLADias)
+cor(RiskDiastolic, LongTermMeanDias)
+```
+
+### {-}
+ 
+-----------------------------------------------------------
+
+ The cardiovascular risk is positively correlated with blood pressure. However, as the long term mean blood pressure is less deviated and the correlation is higher, it is much better to do the risk assessment with long term mean blood pressure.
+
+<br />
+
+## **Q9**
+>Do you agree that the blood pressure of the patients does not deviate significantly from
+their long term mean blood pressure? Support your answer by appropriate statistical tests
+(including any descriptive statistics needed). Formulate null and alternative hypotheses as well as conclusions.
+
+## {.tabset}
+
+### Systolic blood pressure
+
+Each observation is independent. For normality,
+
+```{r, echo=FALSE}
+diffSys = KorotkoffLASys - LongTermMeanSys
+qqnorm(diffSys, main = "Diff-Sys");
+qqline(diffSys, col="#F0992A",lwd=1,lty=2)
+```
+
+ the normality does not hold. However, according to central limit theorem, it is still available to use for analysis of descriptive statistics. With these assumptions, one sample t-test is executed. The null hypothesis $H_0$ and the alternative hypothesis $H_A$ are,
+
+>**$H_0: μ_{KorotkoffLASys-LongTermMeanSys} = 0$** <br /> The Systolic blood pressure does not significantly deviate from its long term mean blood pressure.
+ <br /> **$H_A: μ_{KorotkoffLASys- LongTermMeanSys} \neq 0$** <br /> The Systolic blood pressure significantly deviates from its long term mean blood pressure.
+ 
+```{r, echo=FALSE}
+SysTTest=t.test(diffSys)
+SysTTest
+tcrit1= qt(0.025, df=74)
+tcrit2= qt(0.975, df=74)
+dum=seq(-3.5, 3.5, length=10^4)
+
+plot(dum, dt(dum, df=74), type='l', xlab='t', ylab='Probability density')
+abline(v=SysTTest$statistic, lty=2)
+
+polygon(c(-3.5, seq(-3.5, tcrit1, by = .001), tcrit1, tcrit1),
+        c(0, dt(c(seq(-3.5, tcrit1, by = .001), tcrit1), df=73), 0),
+        col = "#FF5853", border = NA)
+
+polygon(c(tcrit2, seq(tcrit2, 3.5, by = .001), 3.5, 3.5),
+        c(0, dt(c(seq(tcrit2, 3.5, by = .001), 3.5), df=73), 0),
+        col = "#FF5853", border = NA)
+```
+
+ For difference for Systolic blood pressure, the test is two tailed, and the p-value is 0.0215, which is smaller than 0.05 Therefore the null hypothesis $H_0$ is rejected, so the alternative hypothesis $H_A$ is true.
+
+### Diastolic blood pressure
+
+Each observation is independent. For normality,
+
+```{r, echo=FALSE}
+diffDias = KorotkoffLADias - LongTermMeanDias
+qqnorm(diffDias, main = "Diff-Dias");
+qqline(diffDias, col="#7CD694",lwd=1,lty=2)
+```
+
+ the normality is satisfied. With these assumptions, one sample t-test is executed. The null hypothesis and the alternative hypothesis are,
+
+>**$H_0: μ_{KorotkoffLADias- LongTermMeanDias} = 0$** <br /> The Diastolic blood pressure does not significantly deviate from its long term mean blood pressure.  <br /> 
+**$H_A: μ_{KorotkoffLASys- LongTermMeanSys} \neq 0$** <br /> The Diastolic blood pressure significantly deviates from its long term mean blood pressure.
+ 
+```{r, echo=FALSE}
+DiasTTest=t.test(diffDias)
+DiasTTest
+tcrit1= qt(0.025, df=74)
+tcrit2= qt(0.975, df=74)
+dum=seq(-3.5, 3.5, length=10^4)
+
+plot(dum, dt(dum, df=74), type='l', xlab='t', ylab='Probability density')
+abline(v=DiasTTest$statistic, lty=2)
+
+polygon(c(-3.5, seq(-3.5, tcrit1, by = .001), tcrit1, tcrit1),
+        c(0, dt(c(seq(-3.5, tcrit1, by = .001), tcrit1), df=73), 0),
+        col = "#FF5853", border = NA)
+
+polygon(c(tcrit2, seq(tcrit2, 3.5, by = .001), 3.5, 3.5),
+        c(0, dt(c(seq(tcrit2, 3.5, by = .001), 3.5), df=73), 0),
+        col = "#FF5853", border = NA)
+```
+
+For difference for Diastolic blood pressure, the test is two tailed, and the p-value is 0.0840, which is much larger than 0.05 Therefore the null hypothesis $H_0$ is true.
+
+## {-}
+
+---------------------------------------------------------
+
+Consequently, the deviation between blood pressure and long term mean blood pressure in Systolic blood pressure is significant, on the other hands, the deviation in Diastolic blood pressure is insignificant.

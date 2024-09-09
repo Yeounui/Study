@@ -1,0 +1,172 @@
+---
+title: "Group12-Project3"
+author: "Ganghyun Kim(01715699),Seungchan Oh(01603277), Wonjong Bum(01815150)"
+date: '2022 5 21'
+output: html_document
+---
+
+```{r pressure, echo=FALSE}
+data <- read.csv("vanrolleghem_our.csv", header=TRUE)
+attach(data)
+source("monod-functions.R")
+```
+
+## 1. Read in the given dataset and make a plot of the oxygen uptake rate with respect to time.
+
+```{r}
+plot(our.data ~ our.times, main = "Data plot", xlab='t', ylab='Oxygen Uptake Rate')
+```
+
+## 2. Perform a parameter estimation for the single and double Monod models, using the following initial parameter estimates. Report the optimized parameter values.
+
+#### For **single** Monod:
+
+> $\alpha = 0.5,\ \beta = 2.7,\ S(0) = 2.0$
+
+#### For **double** Monod:
+
+> $\alpha_1 = -1.20,\ \beta_1 = 0.34,\ S_1(0) = 1.39,\\ \alpha_2 = -0.69,\ \beta_2 = -1.61,\ S_2(0) = 0.34$
+
+```{r}
+# alpha, beta, S parameter
+singlePar <- c(0.5, 2.7, 2.0) # Single
+doublePar1 <- c(-1.20, 0.34,  1.39) # Double 1
+doublePar2 <- c(-0.69, -1.61, 0.34) # Double 2 
+
+# Objective function
+Jobjective <- function(thetas, FUN, xdata, ydata) {
+  y_est <- do.call(FUN, list(xdata, thetas))
+  y_resid <- ydata - y_est 
+  J <- sum(y_resid^2) 
+  return(J)
+}
+
+# Optimization of models
+singlefit <- optim(par = singlePar, fn = Jobjective, FUN = single.monod, xdata = our.times, ydata = our.data)
+doublefit <- optim(par = c(doublePar1, doublePar2), fn = Jobjective, FUN = double.monod, xdata = our.times, ydata = our.data)
+```
+
+The optimized set of parameters for the single Monod model is,
+```{r}
+singlefit$par
+```
+
+The optimized set of parameters for the double Monod model is,
+```{r}
+doublefit$par
+```
+
+## 3. Plot the fitted models on one and the same plot.
+```{r}
+color <-  c('#805FFA', '#5DFA61')
+xseq <- seq(min(our.times), max(our.times), 0.1)
+
+plot(our.data ~ our.times, main = "Fitted model", xlab='t', ylab='Oxygen Uptake Rate')
+lines(x=xseq, y=single.monod(xseq, singlefit$par), col = color[1])
+lines(x=xseq, y=double.monod(xseq, doublefit$par), col = color[2])
+legend(x = "topright", legend = c("single", "double"), fill = color)
+```
+
+## 4. Write a function in R to compute the Bayesian information criterion (BIC) and compare the goodness-of-fit using this criterion for both models. According to BIC, which is the better model? Does this agree with your intuition?
+
+```{r}
+# Bayesian Information Criterion (BIC) function is coded below.
+BIC <- function(thetas, FUN, xdata, ydata) { #x y
+  RSS <- Jobjective (thetas, FUN, xdata, ydata)
+  N <- length(xdata)
+  p <- length(thetas)
+  B <- N*log(RSS/N) + p*log(N) # Akaike's: 2p, Bayesian: plog(N)
+  return(B)
+}
+
+# Calculated BIC values for each model.
+BIC(singlefit$par, single.monod, our.times, our.data) #The better
+BIC(doublefit$par, double.monod, our.times, our.data)
+```
+
+ In order to pick the best model, perform Bayesian Information Criterion(BIC) which is an estimator of prediction error.
+Since BIC indicates goodness-of-fit of each model, it provides a benchmark for model selection. BIC of double Monod is lower than one of single Monod. Therefore, the double Monod model is better description.
+
+ In order to statistically verify which model is better, F-test is performed.
+
+```{r}
+Ftest <- function(thetas1, thetas2, FUN1, FUN2, xdata, ydata) {
+  RSS1 <- Jobjective(thetas1, FUN1, xdata, ydata)
+  RSS2 <- Jobjective(thetas2, FUN2, xdata, ydata)
+  N <- length(xdata)
+  p1 <- length(thetas1)
+  p2 <- length(thetas2)
+  F <- ((RSS1 - RSS2) / (p2 - p1)) / (RSS2 / (N - p2))
+  pvalue <- pf(F, df1 = p2 - p1, df2 = N - p2, lower.tail = FALSE)
+  return(list(F = F, df1 = abs(p2 - p1), df2 = N - p2, pValue = pvalue))
+}
+# F-test between single Monod model and double Monod model.
+Ftest(singlefit$par, doublefit$par, single.monod, double.monod, our.times, our.data)
+```
+
+> $H_{0}$: The complex double Monod is not significantly better than simple single Monod. \
+> $H_{A}$: The complex double Monod is significantly better than simple single Monod.
+
++ Critical F-value: 402.7574
+
++ P-value: 6.433483e^(-37)
+
+ $H_{0}$ is rejected so that $H_{A}$ is accepted: double Monod is significantly better than single Monod. Even though double Monod is more complex than single Monod, the model is more effective.
+
+## 5. Perform a local sensitivity analysis for each of the parameters of your selected model and make a single plot with the sensitivity functions for each parameter.
+```{r}
+relativeSensitivity <- function(FUN, thetas, xdata = 0:45, eps = 1e-5) {
+	yhat <- do.call(FUN, list(xdata, thetas))
+	S <- matrix(NA, nrow = length(xdata), ncol = length(thetas))
+	for (p in 1:length(thetas)) {
+		thetas. <- thetas
+		thetas.[p] <- thetas[p] * (1+eps)
+		yhat. <- do.call(FUN, list(xdata, thetas.))
+		S[, p] <- ((yhat. - yhat) / (eps*thetas[p])) * abs(thetas[p]) #Sensitivity with respect to parameters.
+	}
+	
+	return(S)
+}
+
+xseq <- seq(min(our.times), max(our.times), length.out=200)
+
+SensArray <- relativeSensitivity(double.monod, doublefit$par, xdata = xseq,
+                                 eps = 1e-5)
+```
+
+ To compare sensitivities of each parameter, relative sensitivity is used. Relative sensitivity with respect to parameter is  $\frac{\partial y_i(t)}{\partial \theta_j} \cdot \theta_j$.
+
+```{r}
+plot(xseq, SensArray[,1],  main = "Sensitivity for each parameter in the double Monod", type = "l", lty=3, frame = TRUE, pch = 18,
+     col = "red", ylim = c(-3,4), xlab = "t",
+     ylab = "Sensitivity")
+lines(xseq, SensArray[,2], pch = 18, col = "#F07F00", type = "l", lty = 3)
+lines(xseq, SensArray[,3], pch = 18, col = "#D9F50C", type = "l", lty = 3)
+lines(xseq, SensArray[,4], pch = 18, col = "#EB0C82", type = "l", lty = 3)
+lines(xseq, SensArray[,5], pch = 18, col = "#0C1AF5", type = "l", lty = 3)
+lines(xseq, SensArray[,6], pch = 18, col = "#16DE98", type = "l", lty = 3)
+legend(x = "topright", legend = c(expression(alpha[1]), expression(beta[1]), expression(S[1]), expression(alpha[2]), expression(beta[2]), expression(S[2])), fill = c("red", "#F07F00", "#D9F50C", "#EB0C82", "#0C1AF5", "#16DE98"))
+```
+```{r}
+par(mfrow=c(2, 3))
+plot(xseq, SensArray[,1],  main = expression(paste("Sensitivity of ", alpha[1])), type = "l", frame = TRUE, pch = 18,
+     col = "red", ylim = c(-3,4), xlab = "t",
+     ylab = "Sensitivity")
+plot(xseq, SensArray[,2],  main = expression(paste("Sensitivity of ", beta[1])), type = "l", frame = TRUE, pch = 18,
+     col = "#F07F00", ylim = c(-3,4), xlab = "t",
+     ylab = "Sensitivity")
+plot(xseq, SensArray[,3],  main = expression(paste("Sensitivity of ", S[1])), type = "l", frame = TRUE, pch = 18,
+     col = "#D9F50C", ylim = c(-3,4), xlab = "t",
+     ylab = "Sensitivity")
+plot(xseq, SensArray[,4],  main = expression(paste("Sensitivity of ", alpha[2])), type = "l", frame = TRUE, pch = 18,
+     col = "#EB0C82", ylim = c(-3,4), xlab = "t",
+     ylab = "Sensitivity")
+plot(xseq, SensArray[,5],  main = expression(paste("Sensitivity of ", beta[2])), type = "l", frame = TRUE, pch = 18,
+     col = "#0C1AF5", ylim = c(-3,4), xlab = "t",
+     ylab = "Sensitivity")
+plot(xseq, SensArray[,6],  main = expression(paste("Sensitivity of ", S[2])), type = "l", frame = TRUE, pch = 18,
+     col = "#16DE98", ylim = c(-3,4), xlab = "t",
+     ylab = "Sensitivity")
+```
+ 
+ Sensitivity of all parameters eventually converges to 0 as time goes. Two parameters, $S_2$ and $\alpha_2$, are the most sensitive among parameters in the model and each pulses positively or negatively at rough time 10, respectively. The sensitivity of $\beta_2$ also pulses at the same time, but not much as former two.

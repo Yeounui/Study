@@ -1,0 +1,507 @@
+---
+title: "PC Practical: Linear regression II"
+output: html_document
+---
+
+## Exercise 17
+
+The data in the dataset calibration.txt were collected by students at the VIB in a study on the saccharification potential of a wild-type poplar and a transgene CCR poplar. Cellulose is first decomposed by cellulase and beta-glucosidase. The released glucosis in the hydrolised samples is then estimated using a combined enzymatic test, i.e., glucose oxidase type II-S from _Aspergillus niger_ (GOD) and
+peroxidase type II from horseradish (POD) with the chromogen ABTS (2,2’-azino-bis(3-ethylbenzothiazoline-6-sulphonic acid)). The accompanying reactions are for 
+
+__GOD: D-glucose + O~2~ <---> D-gluconic acid + H~2~O~2~ __
+
+and for 
+
+__POD: H~2~O~2~ + ABTS <---> ABTS^+^ + H~2~O. __
+
+GOD catalyses the oxidation of glucose during which H~2~O~2~ is released. This H~2~O~2~ oxides ABTS in the presence of POD to the green radical cation ABTS^+^. The increase in absorbance for 405 nm was measured for known concentrations of glucose.
+
+Read the data via `read.table`. Change your working directory to the folder where you stored `calibration.txt`. 
+
+```{r} 
+calib <- read.table("calibration.txt", sep="", header = TRUE) 
+attach(calib)
+```
+
+#### 1. Fit a linear regression model for the absorbance for 405 nm (`A405`) in function of the percentage glucose (`gluc_percent`). Interpret the result.
+
+```{r}
+model <- lm(A405 ~ gluc_percent)
+
+plot(A405 ~ gluc_percent)
+
+summary(model)
+confint(model)
+```
+
+There is a highly significant effect ($p< 0.001$) of the percentage glucose on
+the absorbance for 405 nm. The absorbance for 450 nm is estimated to increase
+with 3.017 (95\% CI [2.925, 3.108]), for every increase in the percentage
+glucose of 0.001.
+
+#### 2. Compose a calibration curve together with the accompanying 95\% confidence intervals. Do the same, but with 95\% prediction intervals. Interpret the results.
+
+Since we want to compose a calibration curve, we want to have predictions for
+each $X$-value. Thus first create a sequence of new data points to predict and
+then predict the outcome using the linear model. 
+
+Take care, when predicting, make sure that either your new data are in a
+dataframe with column name 'gluc_percent' or specifiy this in your prediction
+step as below.
+
+```{r}
+newx <- seq(min(gluc_percent), max(gluc_percent), length = 1000)
+CI <- predict(model, newdata = data.frame(gluc_percent = newx), interval = 'confidence')
+PI <- predict(model, newdata = data.frame(gluc_percent = newx), interval = 'prediction')
+```
+
+Next plot the curve with confidence and prediction intervals:
+
+```{r, fig.cap = "Figure 1: ..."}
+plot(A405 ~ gluc_percent, type = "n")
+polygon(c(rev(newx), newx), c(rev(PI[, 3]), PI[, 2]), col = "grey90", border = NA)
+lines(newx, PI[, 3], lty = "dashed")
+lines(newx, PI[, 2], lty = "dashed")
+polygon(c(rev(newx), newx), c(rev(CI[, 3]), CI[, 2]), col = "grey75", border = NA)
+lines(newx, CI[, 3], lwd = 1)
+lines(newx, CI[, 2], lwd = 1)
+abline(model, lwd = 2)
+```
+
+The 95\% confidence interval contains with 95\% probability the true regression
+line. 
+
+The 95\% prediction interval contains with 95\% probability a random observation
+of the absorbance for 405 nm, given a certain value for the predictor variable
+percentage glucose.
+
+#### 3. Verify whether the model describes the data properly. If not, adapt
+the model and the obtained calibration curves.
+
+```{r}
+par(mfrow=c(2,2))
+plot(model)
+```
+
+The linearity assumption does not seem to hold. Also normality and
+homoscedasticity do not seem to be OK. To solve linearity we can add a quadratic
+term.
+
+```{r}
+model2 <- lm(A405 ~ gluc_percent + I(gluc_percent^2))
+summary(model2)
+anova(model, model2)
+
+par(mfrow = c(2,  2))
+plot(model2)
+```
+
+Indeed adding the quadratic term significantly contributes in explaining the
+variance in the absorbance for 450nm given that the percentage glucose is
+already in the model.
+
+Linearity: maybe, but let's try to improve it by adding a cubic term
+
+```{r}
+model3 <- lm(A405 ~ gluc_percent + I(gluc_percent^2) + I(gluc_percent^3))
+summary(model3)
+anova(model2, model3)
+
+par(mfrow = c(2, 2))
+plot(model3)
+```
+
+Slight improvement for linearity, but normality became worse. Adding the cubic
+term significantly contributes in explaining the variance in the absorbance for
+450nm given that there is already a first and second order term for percentage
+glucose in the model, but it is only just significant
+
+What if we add a fourth order term?
+
+```{r}
+model4 <- lm(A405 ~ gluc_percent + I(gluc_percent^2) + I(gluc_percent^3) + I(gluc_percent^4))
+summary(model4)
+anova(model3, model4)
+
+par(mfrow = c(2, 2))
+plot(model4)
+```
+
+It seems like the fourth order term is not needed. So we continue with the model
+of degree 3. We'll try some transformations to improve the normality and
+homoscedasticity.
+
+```{r}
+model3log <- lm(log(A405) ~ gluc_percent + I(gluc_percent^2) + I(gluc_percent^3))
+summary(model3log)
+
+par(mfrow = c(2, 2))
+plot(model3log)
+```
+
+```{r}
+model3inv <- lm(1/A405 ~ gluc_percent + I(gluc_percent^2) + I(gluc_percent^3))
+summary(model3inv)
+
+par(mfrow = c(2, 2))
+plot(model3inv)
+```
+
+```{r}
+model3sqrt <- lm(sqrt(A405) ~ gluc_percent + I(gluc_percent^2) + I(gluc_percent^3))
+summary(model3sqrt)
+
+par(mfrow = c(2, 2))
+plot(model3sqrt)
+```
+
+We choose the 3rd order model with sqrt-transformation.
+
+```{r}
+newx <- seq(min(gluc_percent), max(gluc_percent), length = 1000)
+CI <- predict(model3sqrt, newdata = data.frame(gluc_percent = newx), interval = 'confidence')^2
+PI <- predict(model3sqrt, newdata = data.frame(gluc_percent = newx), interval = 'prediction')^2
+
+plot(A405 ~ gluc_percent, type = "n")
+polygon(c(rev(newx), newx), c(rev(PI[, 3]), PI[, 2]), col = "grey90", border = NA)
+lines(newx, PI[, 3], lty = "dashed")
+lines(newx, PI[, 2], lty = "dashed")
+polygon(c(rev(newx), newx), c(rev(CI[, 3]), CI[, 2]), col = "grey75", border = NA)
+lines(newx, CI[, 3], lwd = 1)
+lines(newx, CI[, 2], lwd = 1)
+points(A405 ~ gluc_percent)
+```
+
+## Exercise 18
+In a study of Lewis (Lewis et al., 1937) that basal metabolism of 50 different boys
+was measured in calories per hour while they were lying still on a bed in a closed
+room. Their ages varied from 32 to 152 months. Also their weight and height were
+measured.
+
+The dataset metadata.txt contains thus the variables:
+
+* __age__: age in month
+* __weight__: weight in kg
+* __height__: height in cm
+* __meta__: metabolism in calories per hour (on logarithmic scale (-1))
+
+
+```{r} 
+metadata <- read.table("metadata.txt", sep="", header = TRUE) 
+attach(metadata)
+```
+
+To not make interpretations needlessly complex: `meta' is the metabolism in
+calories per hour on a logarithmic scale, and without the factor "-1".
+
+#### 1. Find a best model to predict the mean metabolism in function of weight, height and age.
+
+**Use forward selection to find the optimal model**
+
+```{r} 
+
+```
+
+...
+
+What about quadratic effects?
+
+```{r} 
+model7 <- lm(meta ~ height + weight + age + I(age^2)); summary(model7)
+```
+
+...
+
+```{r}
+model8 <- lm(meta ~ weight + age + I(age^2)); summary(model8)
+```
+
+Are there other significant quadratic effects?
+
+```{r}
+model9 <- lm(meta ~ weight + I(weight^2) + age + I(age^2)); summary(model9)
+```
+
+...
+
+Are there significant interactions?
+
+```{r}
+modelB <- lm(meta ~ weight + age + I(age^2) + height:age + height:I(age^2))
+summary(modelB)
+modelC <- lm(meta ~ weight + age + I(age^2) + height:age)
+summary(modelC)
+```
+
+...
+
+#### 2. Interpret the estimated parameters in your final model, and interpet the multiple correlation coefficient.
+
+```{r} 
+finalmodel <- model8
+summary(finalmodel)
+```
+
+- a. Interpretation of the weight parameter estimate:
+
+...
+
+- b. Interpretation of the age parameter estimate:
+
+The quadratic term makes it difficult to interpret the main effect and the
+quadratic effect of age separately, but we can interpret the terms together.
+
+   - Consider two ages $l$ and $l+1$.
+   - $\hat{\beta_1}$ is the estimated main effect of age.
+   - $\hat{\beta_2}$ is the estimated quadratic effect of age.
+   - $\hat{\beta_2}$ is the estimated effect of weight.
+   
+When we keep the predictor variable "weight" constant at the value $g$, then:
+
+$\widehat{meta(l)} = \hat{\beta_2} l^2 + \hat{\beta_1} l + \hat{\beta_3} g$
+
+and
+
+$\widehat{meta(l+1)} = \hat{\beta_2} (l+1)^2 + \hat{\beta_1} (l+1) + \hat{\beta_3} g$
+
+$= \hat{\beta_2} (l^2+2l+1) + \hat{\beta_1} (l+1) + \hat{\beta_3} g$
+
+$= \hat{\beta_2} l^2 + 2 \hat{\beta_2} l+ \hat{\beta_2} + \hat{\beta_1} l + \hat{\beta_1} + \hat{\beta_3} g$
+
+When we substract these from each other, we get:
+
+$\widehat{meta(l+1)} - \widehat{meta(l)} = (\hat{\beta_2} l^2 + 2 \hat{\beta_2} l+ \hat{\beta_2} + \hat{\beta_1} l + \hat{\beta_1} + \hat{\beta_3} g) - (\hat{\beta_2} l^2 + \hat{\beta_1} l + \hat{\beta_3} g)$
+
+$= \hat{\beta_2} l^2 + 2 \hat{\beta_2} l+ \hat{\beta_2} + \hat{\beta_1} l + \hat{\beta_1} + \hat{\beta_3} g - \hat{\beta_2} l^2 - \hat{\beta_1} l - \hat{\beta_3} g$
+
+$= 2 \hat{\beta_2} l+ \hat{\beta_2} + \hat{\beta_1}$
+
+So the increase depends on the value of the "age" variable $l$.
+
+If we plug in the values $\hat{\beta_1} = 2.786*10^{-03}$ and
+$\hat{\beta_2} = -1.312*10^{-05}$, we get:
+
+$\widehat{meta(l+1)} - \widehat{meta(l)} = -2.624*10^{-05} l - 1.312*10^{-05} + 2.786*10^{-03}$
+
+$= -2.6*10^{-05} l + 0.0028$
+
+Interpretation:
+
+When you compare persons who differ in age by one year, but which have the same
+weight, the mean logarithm of the metabolism is estimated to increase by 0.0028
+minus 2.6e-5 times the age of the persons in the youngest group.
+
+**Interpretation on the original scale:**
+
+...
+
+**Interpret the multiple correlation coefficient** 
+
+...
+
+
+#### 3. Make appropriate QQ-plots and residual plots to assess the final model
+fit. Interpret the figures and explain for each figure what any possible
+deviation represents. 
+
+```{r}
+par(mfrow=c(2,2))
+plot(finalmodel)
+```
+
+Interpretation:
+
+1. Upper left: ...
+   
+2. Lower left: ...
+   
+3. Upper right: ...
+   
+4. Lower right: This graph shows the standardised residuals plotted against the
+   leverage. There are three important things you can deduce from this graph:
+    1. The leverage is a measure for the potential of the data point to
+       influence the parameter estimates, if the observation would be shifted in
+       the y-direction by one unit. It indicates which observations are extreme
+       in terms of the predictors. The leverage is considered extreme if it is
+       higher than $2p/n = 2*4/50 = 0.16$. There are quite some points which
+       have an extreme leverage.
+    2. (Standardized) residuals indicate how extreme observations are in terms
+of the response variable. Residuals are considered extreme if the studentized
+residuals (a similar transformation as standardized residuals) surpasses
+$1.96*\hat{\sigma}$, where $\hat{\sigma}$ is the residual standard deviation.
+    3. This graph also shows the contours for the Cook's distance equal to 0.5
+and 1. Points with a high Cook's Distance have a high influence on the estimated
+coefficients and so also on the predictions. They are considered extreme if they
+       pass the 50\% percentile of a $F_{p,n-p}$-distribution. The 50\%
+       percentile of a $F_{4,46}$-distribution is equal to 0.85. There are no
+       points with an extreme Cook's Distance. 
+
+#### 4. Investigate if the data of certain boys have a large influence on all the fitted values and coefficients. If necessary adjust the model. 
+
+Do the data of certain boys have and extreme influence on all the fitted values
+and coefficients: Cook's Distance (interpretation, see last question):
+
+```{r}
+par(mfrow=c(1,1))
+cook_final <- cooks.distance(finalmodel)
+plot(cook_final,type='h')
+p <- length(coef(finalmodel))
+n <- nrow(metadata)
+fquantile <- qf(0.5,df1=p,df2=n-p) #Threshold for Cook's Distance
+all(cook_final < fquantile) #TRUE => All Cook's Distances are smaller then the 50% percentile of $F(p,n-p)$-distribution
+plot(cook_final,type='h',ylim=c(0,1))
+abline(h=qf(0.5,df1=p,df2=n-p))
+```
+
+Do the data of certain boys have an extreme infuence on certain coefficients?
+```{r}
+#dfbetas
+dfbeta_finalmodel <- dfbetas(finalmodel)
+treshold <- 2 / sqrt(n) #Relatively large dataset, we can use 2 / sqrt(n) as the critical value for DFBETAS
+all(dfbeta_finalmodel > treshold) #FALSE => some DFBETAS are larger than the critical value
+which(dfbeta_finalmodel[,"(Intercept)"] > treshold) #intercept
+which(dfbeta_finalmodel[,"weight"] > treshold) #weight
+which(dfbeta_finalmodel[,"age"] > treshold) #age
+which(dfbeta_finalmodel[,"I(age^2)"] > treshold) #age^2
+```
+
+What we did here was to check, for each parameter separately, which observations
+have an extreme influence on that parameter. We verify if some observations
+reoccur several times, because this would mean they have a strong influence on
+multiple parameters. Observations 25 and 50 have a strong influence on both the
+intercept and the quadratic effect of age.
+
+```{r}
+metadata[c(25,50),]
+```
+
+What if we fit the same model without these observations?
+
+```{r}
+metadata2 <- metadata[-c(25,50),]
+modelWithout <- lm(metadata2$meta ~ metadata2$weight + metadata2$age + I(metadata2$age^2))
+summary(modelWithout)
+summary(model8)
+```
+
+The differences are small. We leave these observations in. What we did here is
+dangerous. In general it is a bad idea to just throw away data, unless you are
+very sure that the data are wrong, or not relevant for some  reason. So don't
+just throw away data!
+
+Verify if those two observations are outliers when weight is plotted in function
+of age, age in function of the logarithm of the metabolism and weight in
+function of the logarithm of the metabolism:
+
+```{r}
+colors <- rep(1,50)
+colors[c(25,50)] <- 2
+plot(x=weight,y=age,col=colors)
+plot(x=age,y=meta,col=colors)
+plot(x=weight,y=meta,col=colors)
+```
+
+#### 5. Is there multicollinearity in the final model? If necessary adjust the
+model.
+
+Remark: If you would have added a quadratic effect of height (which is slightly
+more significant) instead of a quadratic effect of age, then you would have
+ended with the following model:
+
+```{r}
+modelD <- lm(meta ~ height + weight + I(height^2))
+summary(modelD)
+```
+
+If you wouldn't have added age as a quadratic effect, you could have ended with
+the following model:
+
+```{r}
+modelE <- lm(meta ~ height + weight + height:weight)
+summary(modelE)
+```
+
+If you would do backward selection (assuming we don't add a quadratic trend for
+the logarithm of the metabolism in terms of weight and lenght):
+
+```{r}
+modelFull <- lm(meta ~ height + weight + age + I(age^2) + height:weight + height:age + height:I(age^2) + weight:age + weight:I(age^2))
+```
+
+```{r}
+step <- lm(meta ~ height + weight + age + height:age)
+summary(step)
+```
+
+The order in which we remove terms (do this yourself as an exercise!):
+height:age^2, height:weight, weight:I(age^2), I(age^2), weight:age. Remark that
+you should never remove main effects when their corresponding quadratic or
+interaction terms are still in the model! The intercept should always stay in
+the model!
+
+There are a lot of different solutions. Why is this? What is wrong?
+
+```{r}
+cor(height, weight)
+cor(height,age)
+cor(weight,age)
+```
+
+Aha...
+
+```{r}
+library(faraway)
+vif(model8)
+vif(modelE)
+vif(step)
+```
+
+VIF stands for the Variance Inflation Factor. The VIF for the k-th coefficient
+in the regression model is defined as: $VIF = (1-R_k^2)^{-1}$
+
+Here $R_k^2$ is the multiple correlation coefficient of a linear regression with
+the k-th predictor on all other predictors in the model. The VIF has as a
+property that she is equal to 1 if the k-th predictor is not linearly associated
+with th eother predictors in the model (so when the k-the predictor is perfectly
+uncorrelated with the other predictors). The VIF is larger than 1 in all other
+cases. The VIF also expresses how much larger the observed variance on the
+estimation of the k-the coefficient is compared with when all predictors would
+be independent. The larger the VIF, the less stable the estimates will be. We
+talk about strong multicollinearity when the VIF is larger than 10.
+
+We notice an extremely high multicollinearity!
+
+As the height is explaining most of the variance in the response variable, we
+will propose a model with only this variable. To do: validate this model again
+(residual plots, Cook's Distance, ...).
+
+```{r}
+#Old model:
+summary(finalmodel)
+#New model:
+finalmodel2 <- lm(meta ~ height)
+summary(finalmodel2)
+```
+
+**Compare the $R^2$ of the last "final" model. What do you see?**
+
+...
+
+Another option would be to center the predictors around zero (this is advised
+when you include interaction and quadratic term in the model).
+
+```{r}
+c.height <- scale(height,center=TRUE,scale=FALSE)
+c.weight <- scale(weight,center=TRUE,scale=FALSE)
+c.age <- scale(age,center=TRUE,scale=FALSE)
+model7B <- lm(meta ~ c.height + c.weight + c.age + I(c.age^2))
+```
+
+```{r}
+summary(model7B)
+vif(model7B)
+```
+
+The VIF is now smaller for some of the effects, but still too high. Centering
+doesn't improve much in this case, but it can be a solution in other cases. It
+is always worth trying!

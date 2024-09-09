@@ -1,0 +1,346 @@
+---
+title: 'PC-practicum : One-Way ANOVA'
+output: html_document
+---
+
+## Exercise 8
+
+It is well known that cuckoos don’t build their own nests but lay their eggs in the nests of other birds. Already since 1892 it is known that the appearance of cuckoo’s eggs is specific to the location where they are found. A study from 1940 showed that cuckoos return every year to the same territory and lay their eggs in the nests of specific ’foster parent’ bird species. Moreover, cuckoos mate only in the neighbourhood of their own territories. In this way, geographical subspecies have evolved, each with their own dominant host species, and natural selection has made that those who survive more often are the ones who are adopted more
+easily by a dominant host species.
+
+The dataset cuckoo.txt contains the length (variable length) of cuckoo’s eggs (in mm). In total the dataset contains 120 observations. For each egg it is indicated which bird species’ nest (variable species) it was. The coding for species is as follows:
+
+• species=1: Meadow Pipit, Anthus pratensis
+• species=2: Tree Pipit, Anthus trivialis
+• species=3: Dunnock, Prunella modularis
+• species=4: European Robin, Erithacus rubecola
+• species=5: White Wagtail, Motacilla alba
+• species=6: Eurasian Wren, Troglodytes troglodytes
+
+The objective is to know if the host species has an influence on the mean size of cuckoo’s eggs.
+
+Read in the dataset <tt>cuckoo.txt</tt>.
+
+1) by File > Import dataset > From Text, or
+2) by the following command (take care of your current working directory)
+
+```{r}
+cuckoo <- read.table("cuckoo.txt", header = TRUE)
+```
+
+You can view your dataset through the command <tt>edit(cuckoo)</tt>.
+
+
+### Question 1
+**How many observations are there for every species?**
+
+Make a frequency table and barplot for the variable <tt>species</tt>
+```{r}
+# some code here: use table() and barplot(table())
+attach(cuckoo)
+table(species)
+# barplot
+barplot(table(species), xlab = "Host species", ylab = "Frequency")
+```
+
+### Question 2
+**We wish to know if the mean size of cuckoo's eggs is the same for every of the 6 host species. Which statistical test could you use? **
+
+Compare the mean in more than 2 independent groups => one-way ANOVA
+
+### Question 3
+**What are the null and alternative hypotheses?**
+
+$H_0$: $\mu_1=\mu_2=\mu_3=\mu_4=\mu_5=\mu_6$
+
+$H_A$: $\exists \; i,j \in \{1,2,3,4,5,6\}: \mu_i \neq \mu_j$ (for at least 2 species the mean length is different)
+
+Where $\mu_i$ is the mean length of cuckoo's eggs for host species $i$ ($i=1,\ldots,6$)
+
+### Question 4
+**Which assumptions need to be satisfied to perform this test? Verify if these assumptions are satisfied.(Assumptions for a one-way ANOVA:)**
+
+- independent observations within each group: probably OK
+- independent groups: probably OK
+- length of cuckoo’s eggs is normally distributed within each group.
+```{r}
+# some code here: use qqnorm() and qqline()
+par(mfrow=c(2,3))
+qqnorm(cuckoo$length[cuckoo$species == 1], main = "Species 1")
+qqline(cuckoo$length[cuckoo$species == 1])
+qqnorm(cuckoo$length[cuckoo$species == 2], main = "Species 2")
+qqline(cuckoo$length[cuckoo$species == 2])
+qqnorm(cuckoo$length[cuckoo$species == 3], main = "Species 3")
+qqline(cuckoo$length[cuckoo$species == 3])
+qqnorm(cuckoo$length[cuckoo$species == 4], main = "Species 4")
+qqline(cuckoo$length[cuckoo$species == 4])
+qqnorm(cuckoo$length[cuckoo$species == 5], main = "Species 5")
+qqline(cuckoo$length[cuckoo$species == 5])
+qqnorm(cuckoo$length[cuckoo$species == 6], main = "Species 6")
+qqline(cuckoo$length[cuckoo$species == 6])
+```
+- For species 2 till 6 the deviations from normality on the QQ-plot could be explained by the low sample size, but for species 1, the length of cuckoos eggs does not look normally distributed. However, given the relatively large sample size for this species, we could apply the central limit theorem, so that we could assume a normal distribution for the mean of this group. When we would decide not to assume this, we could still use a non-parametric alternative for a one-way ANOVA (see Exercise 9).
+```{r}
+# some code here: use boxplot()
+par(mfrow = c(1, 1))
+boxplot(cuckoo$length ~ cuckoo$species, xlab = "Host species", ylab = "Egg length")
+```
+
+Seems to be satisfied.
+
+### Question 5
+**Perform the test**
+
+Before performing the ANOVA test, you need to make sure that <tt>R</tt> recognizes the variable <tt>species</tt> as a categorical variable (here named <tt>speciescat</tt>). 
+
+```{r}
+speciescat <- as.factor(species)
+speciescat
+```
+
+Perform a one-way ANOVA with <tt>length</tt> as outcome and <tt>speciescat</tt> as categorical variable.
+```{r}
+# some code here: use aov()
+m1 <- aov(length ~ speciescat, data = cuckoo)
+summary(m1)
+```
+
+### Question 6
+**What can you conclude at the 5% significance level?**
+
+Notice the small $p$-value. The mean length of cuckoos eggs is significantly different at the 5\% significance level for at least 2 of the host species. We can not conclude from the test which of the species are significantly different.
+
+### Question 7 
+**performing post-hoc comparisons with Bonferroni correction as follows:**
+```{r}
+library(faraway)
+TukeyHSD(m1)
+```
+
+# TukeyHSD(m1, conf.level = 0.99)
+
+Look at the results of the pairwise comparisons between the different species.
+Between which species is the mean length significantly different at the 5%
+significance level, after Bonferroni correction?
+
+The output is a table, where:
+
+- the first column indicates which groups (species) are compared.
+- <tt>diff</tt> = the mean difference between the groups.
+- <tt>lwr</tt> = the lower bound of the 95\% family-wise confidence interval
+- <tt>upr</tt> = the upper bound of the 95\% family-wise confidence interval
+- <tt>p adj</tt> = the $p$-values for the pairwise comparisons, corrected for the family-wise error rate.
+
+###Question 8
+**Aside from p-values we can also calculate confidence intervals for all the pairwise comparisons between the different species. Calculate the confidence interval for the difference in mean length between species 1 and 2. Keep in mind that the overall significance level has to stay at 5%.**
+
+The p-values in the output are Tukey-corrected and so are comparable with the overall significance level of 5%. Also the given confidence levels [lwr, upr] for the mean difference in egg length between 2 host species give us conclusion at an overall 5% significance level.
+
+We conclude that at the overall 5% significance level, the mean length of cuckoos eggs is significantly different between species 1 and 2, species 1 and 3, species 1 and 6, species 2 and 6, species 3 and 6, species 4 and 6, and species 5 and 6.
+
+```{r}
+
+```
+...
+
+### Question 9
+Take species 1 and 2 together in <tt>group=0</tt> and species 3 till 6 together in <tt>group=1</tt>.
+
+```{r}
+# some code here
+group <- ifelse(cuckoo$species <= 2, 0, 1)
+```
+
+To examine if the mean length of cuckoos eggs is different in <tt>group=0</tt> and <tt>group=1</tt>, you can do
+
+- an ANOVA-test with two groups:
+
+```{r}
+# some code here
+cuckoo$group <- as.factor(group)
+m2 <- aov(length ~ group, data = cuckoo)
+summary(m2)
+```
+
+- an unpaired t-test assuming equal population variances for <tt>length</tt>.
+
+```{r}
+# some code here: use t.test()
+t.test(length ~ group, var.equal = TRUE, paired = FALSE, data = cuckoo)
+```
+
+Notice that the results ($p$-values) are the same because these are equivalent tests ($F = T^2$).
+
+
+##Exercise 9
+
+In a study on the carcinogenicity of benzopyrene, DNA damage was studied in 4 different tissues: liver (1), kidney (2), lung (3) and skin (4). The data can be found in the file dna.txt. The first column in the data set is a measure for the DNA damage, the second column contains the code for the tissue.
+
+Read in the dataset <tt>dna.txt</tt>.
+
+```{r}
+# some code here
+dna <- read.table("dna.txt", header = TRUE)
+```
+
+**Which statistical test would you use to get to know if all 4 tissues get the same damage on average?**
+
+Compare the mean in more than 2 independent groups => first choice is a one-way ANOVA.
+
+**What are the null and alternative hypotheses?**
+
+$H_0$: $\mu_1=\mu_2=\mu_3=\mu_4$
+
+$H_A$: $\exists \; i,j \in \{1,2,3,4\}: \mu_i \neq \mu_j$ (for at least 2 tissues the mean DNA damage is different)
+
+Where $\mu_i$ is the mean DNA damage for tissue $i$ ($i=1,\ldots,4$)
+
+**Check if the assumptions are satisfied:**
+
+- independent observations within each group: probably OK
+- independent groups: probably OK
+- DNA damage is normally distributed within each tissue group.
+
+```{r}
+par(mfrow=c(1,4))
+qqnorm(dna$dna[dna$tissue == 1], main = "Tissue 1: liver")
+qqline(dna$dna[dna$tissue == 1])
+qqnorm(dna$dna[dna$tissue == 2], main = "Tissue 2: kidney")
+qqline(dna$dna[dna$tissue == 2])
+qqnorm(dna$dna[dna$tissue == 3], main = "Tissue 3: lung")
+qqline(dna$dna[dna$tissue == 3])
+qqnorm(dna$dna[dna$tissue == 4], main = "Tissue 4: skin")
+qqline(dna$dna[dna$tissue == 4])
+```
+
+As the sample sizes are really small, the normality of the data within each group is very difficult (impossible) to assess.
+
+- The DNA damage has equal variance within each tissue group.
+```{r}
+par(mfrow = c(1, 1))
+boxplot(dna$dna ~ dna$tissue, xlab = "Tissue", ylab = "DNA damage")
+```
+
+Tissue 4 has a much larger DNA damage and is more variable than the other tissues. 
+
+When the variance and the mean are positively correlated with each other it is often appropriate to apply a log-transformation, because in this case it may have a variance-stabilizing effect.
+
+```{r}
+par(mfrow=c(1,4))
+qqnorm(log(dna$dna[dna$tissue == 1]), main = "Tissue 1: liver")
+qqline(log(dna$dna[dna$tissue == 1]))
+qqnorm(log(dna$dna[dna$tissue == 2]), main = "Tissue 2: kidney")
+qqline(log(dna$dna[dna$tissue == 2]))
+qqnorm(log(dna$dna[dna$tissue == 3]), main = "Tissue 3: lung")
+qqline(log(dna$dna[dna$tissue == 3]))
+qqnorm(log(dna$dna[dna$tissue == 4]), main = "Tissue 4: skin")
+qqline(log(dna$dna[dna$tissue == 4]))
+
+par(mfrow = c(1, 1))
+boxplot(log(dna$dna) ~ dna$tissue, xlab = "Tissue", ylab = "log(DNA damage)")
+```
+
+It seems like now the assumption of equal variance is met more closely. 
+
+However, we have a low sample size, and in case of low sample size a non-parametric test is often to be preferred, as we can not be sure enough about the normality of the data, and the central limit theorem can not be used as an argument for low sample sizes.
+
+**A non-parametric alternative to one-way ANOVA** is the Kruskal Wallis test.
+Here it is tested if the **distribution** of the variable <tt>dna</tt> is the same between the different tissue groups.
+
+```{r}
+kruskal.test(dna ~ tissue, data = dna)
+```
+
+**What can you conclude?**
+
+From the p-value we can conclude that for at least 1 of the tissues the distribution of the DNA-damage is significantly different from the other tissues, at the 5% significance level.
+
+**Perform post-hoc tests**.
+The tissues can be compared pairwise using the non-parametric alternative to an unpaired t-test, the Wilcoxon rank-sum test. Use a Bonferroni correction.
+
+To examine for which of the species, the distribution is different, you have to perform post-hoc tests. This can not be done directly through Tukey tests, so you have to make use of a Bonferroni-correction. The 6 pairwise tests have to be done at the 5%6=0.833% significance level. The 2 tissues can be compared using the non-parametric alternative to an unpaired t-test, the Wilcoxon rank-sum test.
+
+For example to compare the DNA damage to tissue 2 with the DNA damage to tissue 3, we use:
+
+```{r}
+# some code here: use wilcox.test()
+wilcox.test(dna$dna[dna$tissue==2],dna$dna[dna$tissue==3], exact = FALSE)
+```
+
+**What can be concluded?**
+
+From the $p$-value we can conclude that for at least 1 of the tissues the distribution of the DNA-damage is significantly different from the other tissues, at the 5\% significance level.
+
+**Perform post-hoc tests**.
+The tissues can be compared pairwise using the non-parametric alternative to an unpaired t-test, the Wilcoxon rank-sum test. Use a Bonferroni correction.
+
+To examine for which of the species, the distribution is different, you have to perform post-hoc tests. This can not be done directly through Tukey tests, so you have to make use of a Bonferroni-correction. The 6 pairwise tests have to be done at the $\frac{5\%}{6} = 0.833\%$ significance level. The 2 tissues can be compared using the non-parametric alternative to an unpaired t-test, the Wilcoxon rank-sum test. 
+
+For example to compare the DNA damage to tissue 2 with the DNA damage to tissue 3, we use:
+```{r}
+wilcox.test(dna$dna[dna$tissue==2],dna$dna[dna$tissue==3], exact = FALSE)
+```
+
+The $p$-value is larger than 0.0083, so the distribution of the DNA damage is not significantly different between tissue 2 and 3, at the overall 5\% significance level.
+
+If we want to compare the DNA damage between tissue 1 and 2:
+```{r}
+wilcox.test(dna$dna[dna$tissue==1], dna$dna[dna$tissue==2], exact = FALSE)
+```
+
+The $p$-value is smaller than 0.0083, so the distribution of the DNA damage is significantly different between tissue 2 and 3, at the overall 5\% significance level. 
+It is more probable to observe either a smaller or a larger DNA damage for tissue 1 as compared to tissue 2, at the overall 5\% signficance level.
+
+## Exercise 10
+
+In a study one wishes to examine the toxicity of shellfish. The dataset toxic.txt contains the toxicity levels (in mg) of shellfish. The observations are from the north-east of the United States and can be divided in 3 geographical regions: Long Island Sound (1), Great South Bay (2) and Shinnecock Bay (3).
+
+Read in the dataset <tt>toxic.txt</tt>.
+
+```{r}
+# some code here
+```
+
+**Which statistical test would you use to know if the geographical region has an influence on the mean toxicity level?**
+
+...
+
+**What are the null and alternative hypotheses?**
+
+...
+
+**Assumptions for a one-way ANOVA:**
+
+...
+
+You can also formally test the equality of variances:
+```{r}
+# some code here: use var.test()
+```
+
+**With the function var.test you can perform a test to examine if the assumption of equal variances for 2 groups is satisfied. What are the null and alternative hypotheses here each time?**
+
+...
+
+**What can you conclude at the overall 5\% significance level from the F-tests**
+
+...
+
+**Perform the test.**
+
+```{r}
+# some code here
+```
+
+**What can you conclude at the 5\% significance level?**
+
+...
+
+**Perform post-hoc tests, with Bonferroni corrections.**
+```{r}
+# some code here
+```
+
+**What can you conclude?**
+
+...

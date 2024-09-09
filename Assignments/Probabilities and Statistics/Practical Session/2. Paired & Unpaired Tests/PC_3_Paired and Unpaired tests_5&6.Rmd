@@ -1,0 +1,295 @@
+---
+title: "PC practical 3: Paired and unpaired tests (2)"
+output: html_document
+---
+
+## Exercise 5
+An indication for the nitrate value in the water is given in a study on the quality or river water. These fictive values are given in the table below. The streams are first divided into 2 groups depending on the fact if their initial nitrate value (in mg N/l) was high or low. For every stream we have a measurement obtained in 1986 and a measurement from 1996. Starting in 1986, some new measures were taken in hopes of reducing the nitrate value. The goal of the study is to examine whether there is indication that these measures were effective.
+
+Datasets in R are constructed in such a manner that different rows in the data grid reflect unpaired (which means independent) observations (in our case measurements from different rivers) whereas different columns indicate paired observations (in our case different measurements from the same stream). Reflect well on the outlay of the above table. Would you adapt the table to comply with the standard R-format? Since we want to distinguish the data from the different types of streams, we introduce another variable group indicating which group the stream belongs to. The value of this new variable could be, for example, 1 in case of rivers from the first group and 2 for rivers from the second group. The modified data can
+be found in the file nitrate2.dat.
+
+Read in dataset nitrate2.dat via the following command (pay attention to the directory)
+
+```{r}
+nitrate <- read.table("nitrate2.dat", header = TRUE)
+```
+
+```{r}
+attach(nitrate)
+```
+
+### Question 1
+Mean change in nitrate level in group 1 
+```{r}
+mean(Gbefore[Group==1]) - mean(Gafter[Group==1])
+```
+Mean change in nitrate level in group 2
+```{r}
+mean(Gbefore[Group==2]) - mean(Gafter[Group==2])
+```
+
+### Question 2
+Dotplot of the paired measurements for both groups
+```{r}
+t = ts(t(cbind(Gbefore[Group==1], Gafter[Group==1])))
+plot.ts(t, plot.type = "single", type = "o")
+t = ts(t(cbind(Gbefore[Group==2], Gafter[Group==2])))
+plot.ts(t, plot.type = "single", type = "o")
+```
+
+### Question 3
+95% confidence interval for the difference in mean nitrate value between 1986 and 1996 for both groups?
+
+(a) Create a new variable (and thus a new column) diff that contains the difference between the measurements in 1986 and in 1996. 
+```{r}
+diff = Gbefore - Gafter
+```
+
+(b) Calculate two 95% confidence intervals for this new variable diff
+```{r}
+t.test(diff[Group==1])
+t.test(diff[Group==2])
+```
+
+(c) Conclusion for each group?
+
+...
+
+(d) Assumptions?
+
+one-sample t-test on the difference for group 1:
+
+- independent observations (rivers)
+- differences normally distributed
+```{r}
+qqnorm(diff[Group==1])
+qqline(diff[Group==1])
+```
+
+one-sample t-test on the difference for group 2:
+
+- independent observations (rivers)
+- differences normally distributed
+```{r}
+qqnorm(diff[Group==2])
+qqline(diff[Group==2])
+```
+
+### Question 4
+
+95% confidence interval for the mean difference in effect of the introduced measures between group 1 and group 2
+
+=> how to represent effect?
+
+```{r}
+# t.test(diff[Group==1], diff[Group==2], var.equal = TRUE)
+t.test(diff ~ Group, var.equal = TRUE, paired = FALSE)
+```
+
+(a) Interpretation of result?
+
+...
+
+(b) What assumptions did you make?
+
+- independent groups
+- independent observations in each group
+- difference normally distributed in each group
+- population variances of the difference are equal
+
+```{r}
+var.test(diff ~ Group)
+boxplot(cbind(diff[Group==1], diff[Group==2]), names = c("Group 1", "Group 2"))
+```
+
+(c) How would the length of this confidence interval change if the number of measurements in both groups would be doubled?
+...
+
+### Question 5
+Test in both groups whether the nitrate level after the measures is lower than before (at 5% significance level).
+
+(a) What are the null and alternative hypothesis?
+
+$H_0$: mean nitrate value before measures = mean nitrate value after measures
+
+$H_A$: mean nitrate value before measures $\neq$ mean nitrate value after measures
+
+or
+
+$H_A$: mean nitrate value before measures > mean nitrate value after measures
+
+
+(b) Perform paired two-sample t-test in each group
+
+```{r}
+t.test(Gafter[Group==1], Gbefore[Group==1], paired = TRUE, alternative = c("less"))
+t.test(Gafter[Group==2], Gbefore[Group==2], paired = TRUE, alternative = c("less"))
+```
+
+(c) Inspect the p-values. What do you conclude?
+
+...
+
+### Question 6
+
+Test whether the mean difference obtained by introducing the measure is different in both groups.
+
+(a) What are the null and alternative hypothesis?
+
+$H_0$: mean difference between nitrate level before and after measures in group 1 = mean difference between nitrate level before and after measures in group 2
+
+$H_A$: mean difference between nitrate level before and after measures in group 1 $\neq$ mean difference between nitrate level before and after measures in group 2
+
+(b) First test whether the variances are equal or not.
+```{r}
+var.test(diff ~ Group)
+```
+
+
+(c) Perform paired two-sample t-test
+
+```{r}
+# t.test(diff[Group==1], diff[Group==2], var.equal = TRUE)
+t.test(diff ~ Group, var.equal = TRUE, paired = FALSE)
+```
+
+(d) Conclusion from p-value
+
+...
+
+## Exercise 6
+
+Consider data coming from a study where an experimental group of 16 rats was infected with the pertussis bacteria. Researchers then measured the concentration of white blood cells (WBC) in number per cubic mm. The same measurements were obtained for a control group of 24 rats.
+The data can be found in wbcon.dat. This file contains two variables: WBC, the concentration of white blood cells, and group, which can take on two values:
+
+- 0: rat is in control group,
+- 1: rat is in experimental group.
+
+Read in dataset wbcon.dat via the following command (pay attention to the directory)
+
+```{r}
+wbcon <- read.table("wbcon.dat", header = TRUE)
+attach(wbcon)
+```
+
+### Question 1
+
+In which group do you expect the largest mean concentration of white blood cells?
+Mean concentration white blood cells in control group and experimental group?
+```{r}
+# mean per group
+mean(WBC[group==0])
+mean(WBC[group==1])
+```
+
+### Question 2
+Figure to display concentration white blood cells for both the control and the experimental group. 
+```{r}
+# figure here
+boxplot(WBC ~ group)
+```
+
+Is mean a meaningful measure to describe the distributions?
+
+...
+
+### Questions 3 and 4
+
+We want to verify whether the mean concentration white blood cells differs in the control and experimental group.
+Mean concentration white blood cells different in control and experimental group?
+
+Assumptions unpaired t-test:
+
+- independent groups
+- independent observations in each group
+- concentration white blood cells in each group normally distributed
+```{r}
+# qq-plots
+par(mfrow=c(1,2))
+qqnorm(WBC[group==0])
+qqline(WBC[group==0])
+qqnorm(WBC[group==1])
+qqline(WBC[group==1])
+```
+
+- optional: variances concentration white blood cells in both groups equal?
+```{r}
+var.test(WBC ~ group)
+```
+
+### Questions 5 and 6
+
+Null and alternative hypothesis for two-sided, left one-sided and right one-sided test?
+
+- two-sided unpaired t-test
+
+Let $\mu_1$ = mean concentration white blood cells in control group
+
+and $\mu_2$ = mean concentration white blood cells in experimental group
+
+- two-sided unpaired t-test
+
+$H_0: \mu_1 = \mu_2$
+
+$H_A: \mu_1 \neq \mu_2$
+
+```{r}
+# two-sided unpaired t-test
+```
+
+- left one-sided unpaired t-test
+
+$H_0: \mu_1 = \mu_2$
+
+$H_A: \mu_1 < \mu_2$
+
+
+```{r}
+# left one-sided unpaired t-test
+```
+
+- right one-sided unpaired t-test
+
+$H_0: \mu_1 = \mu_2$
+
+$H_A: \mu_1 > \mu_2$
+
+```{r}
+# right one-sided unpaired t-test
+```
+
+### Question 7
+
+Which of the 3 tests seems most appropriate?
+
+...
+
+### Question 8 (*)
+
+Compare the result with that from a nonparametric test (wilcox.test).
+Nonparametric alternative for unpaired t-test = Wilcoxon rank-sum test or Mann-Whitney U test
+
+Let $X$: white blood cells in control group
+
+and $Y$: white blood cells in experimental group
+
+$H_0: P(X \leq Y) = 0.5$
+
+$H_A: P(X \leq Y) \neq 0.5$
+
+```{r}
+wilcox.test(WBC ~ group, exact = TRUE)
+```
+
+$W$ = number of times that value of group 0 is larger than value of group 1, so $W$ = number of times that $X$ is larger than $Y$
+
+Under $H_0$ you expect that $W$ is equal to half of the possible combinations between $X$ and $Y$, so $W$ = half of (number of observations $X$) $\cdot$ (number of observations $Y$) = (24 $\cdot$ 16)/2 = 192 > 21
+
+Conclusion: It is more likely to observe a higher concentration of white blood cells in the experimental group than in the control group
+
+### Nonparametric test for paired data
+
+Nonparametric alternative for paired t-test = Wilcoxon signed-rank test 
+
+-> wilcox.test(..., ..., paired = T, exact = T)

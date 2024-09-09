@@ -1,0 +1,94 @@
+Radioactive Element,Symbol,Atomic Number,Atomic Mass Number,Synthetic,Decay Type,Half-Life
+Hydrogen,H,1,3,No,Beta Decay (β-),12.32 years
+Beryllium,Be,4,7,No,Electron Capture (ε) and Gamma Decay,53.12 days
+Beryllium,Be,4,8,No,Alpha,7 x 10^-17 seconds
+Beryllium,Be,4,10,No,Beta Decay (β-),1 360 000 years
+Carbon,C,6,14,No,Beta Decay (β-),5730 years
+Calcium,Ca,20,41,No,Electron Capture (ε),103 000 years
+Calcium,Ca,20,46,No,Double Beta Decay (β-β-),> 2.8 x 10^15 years
+Calcium,Ca,20,48,No,Double Beta Decay (β-β-),> 4 x 10^19 years
+Iron,Fe,26,54,No,Double Electron Capture (ε),> 3.1 x 10^22 years
+Iron,Fe,26,55,Yes,Electron Capture (ε),2.73 years
+Iron,Fe,26,59,Yes,Beta Decay (β-),44.503 days
+Iron,Fe,26,60,Yes,Beta Decay (β-),2 600 000 years
+Cobalt,Co,27,56,Yes,Electron Capture (ε),77.27 days
+Cobalt,Co,27,57,Yes,Electron Capture (ε),271.79 days
+Cobalt,Co,27,58,Yes,Electron Capture (ε),70.86 days
+Cobalt,Co,27,60,Yes,Beta Decay (β-) and Double Gamma,5.2714 years
+Nickel,Ni,28,59,No,Electron Capture (ε),76 000 years
+Nickel,Ni,28,63,Yes,Beta Decay (β-),100.1 years
+Zinc,Zn,30,65,Yes,Electron Capture (ε) and Gamma,243.8 days
+Zinc,Zn,30,72,Yes,Beta Decay (β-),46.5 hours
+Selenium,Se,34,79,No,Beta Decay (β-),3.27 x 10^5 years
+Selenium,Se,34,82,No,Double Beta Decay (β- β-),1.08 x 10^20 years
+Krypton,Kr,36,85,No,Beta Decay (β-),10.756 years
+Rubidium,Rb,37,87,No,Beta Decay (β-),4.88 x 10^10 years
+Strontium,Sr,38,89,No,Electron Capture (ε) and Beta Decay (β-),50.52 days
+Strontium,Sr,38,90,No,Beta Decay (β-),28.9 years
+Yttrium,Y,39,90,No,Beta Decay (β-) and Gamma,2.67 days
+Yttrium,Y,39,91,No,Beta Decay (β-) and Gamma,58.5 days
+Zirconium,Zr,40,93,No,Beta Decay (β-),1.53 x 10^6 years
+Zirconium,Zr,40,94,No,Double Beta Decay (β-),> 1.1 x 10^17 years
+Zirconium,Zr,40,96,No,Double Beta Decay (β-),2 x 10^19 years
+Niobium,Nb,41,95,No,Beta Decay (β-) and Gamma,34.991 days
+Molybdenum,Mo,42,93,No,Electron Capture (ε),4 x 103 years
+Technetium,Tc,43,99,No,Beta Decay (β-),2.111 x 10^5 years
+Ruthenium,Ru,44,103,No,Beta Decay (β-) and Gamma,39.26 days
+Ruthenium,Ru,44,106,No,Beta Decay (β-),373.59 days
+Palladium,Pd,46,107,No,Beta Decay (β-) and Gamma,6.5 million years
+Silver,Ag,47,111,No,Beta Decay (β-) and Gamma,7.45 days
+Tin,Sn,50,126,No,Beta Decay (β-),2.3 x 10^5 years
+Antimony,Sb,51,125,No,Beta Decay (β-),2.7582 years
+Tellurium,Te,52,127,No,Beta Decay (β-) and Gamma,9.35 hours
+Tellurium,Te,52,129,No,Beta Decay (β-),69.6 minutes
+Iodine,I,53,123,No,Electron Capture (ε) and Gamma,13 hours
+Iodine,I,53,129,No,Beta Decay (β-),15.7 million years
+Iodine,I,53,131,No,Beta Decay (β-) and Gamma,8.02070 days
+Xenon,Xe,54,125,No,Electron Capture (ε),16.9 hours
+Xenon,Xe,54,127,No,Electron Capture (ε),36.345 days
+Xenon,Xe,54,133,No,Beta Decay (β-),5.247 days
+Cesium,Cs,55,134,No,Electron Capture (ε) and Beta Decay (β-),2.0648 years
+Cesium,Cs,55,135,No,Beta Decay (β-),2.3 million years
+Cesium,Cs,55,137,No,Beta Decay (β-) and Gamma,30.17 years
+Cerium,Ce,58,144,No,Beta Decay (β-),285 days
+Promethium,Pm,61,147,No,Beta Decay (β-) and Gamma,2.6234 years
+Europium,Eu,63,154,No,Beta Decay (β-) and Beta Decay (β+) and Gamma,16 years
+Europium,Eu,63,155,No,Beta Decay (β-),2 years
+Iridium,Ir,77,188,Yes,Electron Capture (ε),1.73 days
+Iridium,Ir,77,189,Yes,Electron Capture (ε),13.2 days
+Iridium,Ir,77,190,Yes,Electron Capture (ε),11.8 days
+Iridium,Ir,77,192,Yes,Beta Decay (β-) and Electron Capture (ε),73.827 days
+Iridium,Ir,77,193,Yes,Gamma Decay,10.5 days
+Iridium,Ir,77,194,Yes,Beta Decay (β-),19.3 hours
+Lead,Pb,82,210,No,Beta Decay (β-) and Alpha,21 years
+Bismuth,Bi,83,210,No,Alpha,3 million years
+Polonium,Po,84,210,No,Alpha,138 days
+Radon,Rn,86,220,No,Alpha and Beta Decay (β+),1 minutes
+Radon,Rn,86,222,No,Alpha,4 days
+Radium,Ra,88,224,No,Alpha,4 days
+Radium,Ra,88,225,No,Beta Decay (β-),15 days
+Radium,Ra,88,226,No,Alpha,1622 years
+Thorium,Th,90,228,No,Alpha,2 years
+Thorium,Th,90,229,No,Alpha,7340 years
+Thorium,Th,90,230,No,Alpha,80 000 years
+Thorium,Th,90,232,No,Alpha,14 years
+Thorium,Th,90,234,No,Beta Decay (β-),24 days
+Proactinium,Pa,91,234,No,Beta Decay (β-),6.75 hours
+Uranium,U,92,233,No,Alpha,159 200 years
+Uranium,U,92,234,No,Alpha,245 500 years
+Uranium,U,92,235,No,Alpha,7.038 x 10^8 years
+Uranium,U,92,236,No,Alpha,2.342 x 10^7 years
+Uranium,U,92,238,No,Alpha,4.468 billion years
+Neptunium,Np,93,237,Yes,Alpha,2.144 million years
+Plutonium,Pu,94,238,No,Alpha,87.74 years
+Plutonium,Pu,94,239,No,Alpha,2.41 x 10^4 years
+Plutonium,Pu,94,240,No,Alpha,6.5 x 10^3 years
+Plutonium,Pu,94,241,No,Beta Decay (β-),14 years
+Plutonium,Pu,94,242,No,Alpha,3.73 x 10^5 years
+Plutonium,Pu,94,244,No,Alpha,8.08 x 10^7 years
+Americium,Am,95,241,No,Alpha,432.2 years
+Americium,Am,95,243,No,Alpha,7370 years
+Curium,Cm,96,242,No,Alpha,160 days
+Curium,Cm,96,243,No,Alpha,29.1 years
+Curium,Cm,96,244,No,Alpha,18.1 years
+Curium,Cm,96,247,No,Alpha,15.6 million years

@@ -1,0 +1,231 @@
+---
+output: html_document
+---
+
+# Exercise 14
+
+For each test you perform in this exercise...
+
+...you give a figure or table which should give you a comparison "at first glance"
+...you justify the choice for the test
+...you give the null and alternative hypothesis
+...you give the test assumptions and you check them where possible
+...you write a conclusion based on the output
+
+The dataset cardiac.dat was obtained in a study where it was determined if the administration of the substance dobutamine can be used to predict cardial attacks. This substance was administered to 588 random persons and causes an extra load on the heart. The following variables where then measured to be able to predict if the person could have a risk for a cardial attack or not:
+
+* dose: dose of dobutamine 
+* maxhr: maximal heart rate after administration of dobutamine 
+* age: age of the patient 
+* gender: gender of the patient (0 = M, 1 = F)
+* smoking: 0 = smoker, 0.5 = occasional smoker, 1 = not a smoker
+* any.event: 0 = patient would get a heart attack within the year after the medical examination, 1 = patient would not get a heart attack within the year after the medical examination
+
+read the data
+```{r}
+cardiac<-read.table("cardiac.dat", header=T, sep=" ")
+attach(cardiac)
+```
+
+
+### Question 0 :
+### First test if there is a difference in the variance of the maximal heart rate for men and women. Report the p-value and give a conclusion. Give a figure which supports the conclusion.
+
+equal variances?
+
+* $H_0$: variances in both groups are equal
+* $H_A$: variances are different
+
+```{r}
+var.test(maxhr~gender)
+boxplot(maxhr~gender)
+```
+
+There is no sufficient proof to reject the null hypothesis. 
+
+### Now test if the mean maximal heart rate differs between men and women. Take into account the previous result for your choice. 
+
+Comparing the mean between two independent groups => unpaired t-test
+with equal variances
+
+* $H_0$: means are equal in both groups
+* $H_0$: means are not equal in both groups
+
+graphical comparison: boxplot
+```{r}
+boxplot(maxhr~gender)
+```
+
+based on the boxplot you can expect no significant difference in the mean maxhr
+
+
+Conditions:
+
+* groups are independent
+* data in each group are independent
+* data in each group are normally distributed
+
+```{r}
+qqnorm(maxhr[gender==0])
+qqline(maxhr[gender==0])
+qqnorm(maxhr[gender==1])
+qqline(maxhr[gender==1])
+
+```
+
+normality seems fullfilled
+
+Test:
+```{r}
+t.test(maxhr~gender, var.equal=T)
+```
+
+There is no proof that the heart rate significantly differs (as expected from the boxplot)
+p=0.8335
+
+### Question 1-3
+### Question 1: One wishes to examine if there is a difference in the mean maximal heart rate depending on the smoking status. If you could choose 1 statistical test to examine this, which would you choose? Argue why.
+### Question 2: Perform the test at the 5% significance level, report the p-value and formulate a concrete and insightful conclusion.
+### Question 3: Which assumptions need to be satisfied to perform this test? Verify graphically if these are fullfilled and describe which plots you made and what you see on them.
+
+comparison of the means between 3 groups => Anova
+
+* $H_0$: The mean max heart rate is the same in all groups
+* $H_A$: The mean max heart rate differs between at least 2 groups.
+
+graphical comparison: boxplot
+```{r}
+boxplot(maxhr~smoking)
+```
+
+conditions:
+
+- independent groups
+- independent data within each group
+- data within each group is normally distributed
+- variance is equal within each group
+
+```{r}
+qqnorm(maxhr[smoking==0])
+qqline(maxhr[smoking==0])
+qqnorm(maxhr[smoking==0.5])
+qqline(maxhr[smoking==0.5])
+qqnorm(maxhr[smoking==1])
+qqline(maxhr[smoking==1])
+```
+
+Normality is doubtful (especially for group smoking = 0), but there are sufficient observations per group (>30), so because of the Central Limit Theorem this will not pose any problem.
+
+```{r}
+table(smoking)
+boxplot(maxhr~smoking)
+```
+
+variances are approximately equal, but for the middle group somewhat smaller than the other groups
+
+(variances could be tested at the 5%/3=1.67% significance level)
+```{r}
+var.test(maxhr[smoking==1], maxhr[smoking==0])
+var.test(maxhr[smoking==1], maxhr[smoking==0.5])
+var.test(maxhr[smoking==0], maxhr[smoking==0.5])
+```
+
+No proof there are differences between the variances
+
+Actual test:
+```{r}
+smoking2<-as.factor(smoking)
+summary(aov(maxhr~smoking2))
+```
+
+p-value = 0.414
+We can not reject the null hypothesis
+There is insufficient evidence that the mean max heart beat differs between the 3 groups (smokers, occasional smokers and non-smokers)
+
+(Or using a non-parametric alternative because of non-normality)
+```{r}
+kruskal.test(maxhr~smoking2)
+```
+
+### Question 4
+### Suppose then you wishes to examine if there is an association between smoking status and gender. Which statistical test can you use? Argue why.
+
+two categorical variables => chi-square test
+
+* $H_0$: Gender and smoking status are independent
+* $H_A$: Gender and smoking status are dependent
+
+contingency table
+```{r}
+table(smoking, gender)
+```
+
+At first glance: more non-smokers (smoking=1) among women (gender=1)
+
+### Question 5:
+### Perform the test at the 1% significance level, report the p-value and formulate a conclusion.
+
+```{r}
+test1<-chisq.test(smoking,gender)
+test1
+```
+
+p=2.63*10^-7
+Significant association between gender and smoking status
+
+### Question 6:
+### Investigate if the assumptions are fullfilled to perform this test.
+
+Conditions:
+
+* independent data
+* at least 80\% of the expected counts larger than 5
+
+```{r}
+test1$expected
+```
+
+No expected counts <5, so conditions are fullfilled.
+
+### Question 7-9
+### Question 7: Report (a) the relative risk of being a smoker (regularly or occasionally) for men versus women, and (b) the relative risk of being an occasional smoker for smoking men versus smoking women. 
+### Question 8: Calculate for both relative risks the corresponding confidence interval, and make sure the overall confidence level is (approximately) 95% (so make sure the probability for at least 1 of the intervals to not contain the relative risk of the population, is 5% at the most).
+### Question 9: Interpret the results from the above two research questions.
+
+a)
+```{r}
+table(gender, smoking)
+#New variable "smoking2": 1 for non-smokers, 0 for occasional smokers or smokers
+smoking2 <- ifelse(smoking == 1, 1, 0)
+a <- table(gender, smoking2)
+a
+rownames(a) <- c("M","W")
+colnames(a)=c("smoking","not smoking")
+addmargins(a)
+#calculate relative risk yourself based on an expanded contingency table:
+(132/220)/(128/338)
+
+#relative risk with epitab: look in the help pages to see which rows and/or columns you have to switch with the option "rev"
+library(epitools)
+epitab(a, rev="both", method="riskratio", conf.level=0.975)
+epitab(c(210,128,88,132),method="riskratio",conf.level=0.975)
+```
+
+Interpretation: confidence interval doesn't contain 1, so men have a significantly higher 'risk' to be smoking than women
+
+b)
+```{r}
+
+b <- table(gender[smoking != 1], smoking[smoking != 1])
+b
+rownames(b) <- c("M", "W")
+colnames(b)=c("smoking","occasional")
+addmargins(b)
+(78/132)/(60/128)
+ 
+epitab(b, rev="rows", method="riskratio", conf.level = 0.975) 
+epitab(c(68,60,54,78), method="riskratio", conf.level = 0.975) 
+
+```
+
+interval does contain 1, so no proof that there is a difference in the 'risk' to be an occasional smoker between men and women

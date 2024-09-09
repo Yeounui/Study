@@ -1,0 +1,199 @@
+---
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# PC-practical : Chi-square tests
+
+## Exercise 11
+
+Elephants live in different types of herds. Female elephants live in family groups with related female elephants and their offspring, either without any males (Family group) or with a male elephant (Family with male). Male elephants live mostly alone (Solitary), or in the company of other male elephants without females (Group of males). Researchers in the Mikumi National Park in Tanzania have investigated if there is an association between the different types of herding and the seasons, as part of a large study on the largest remaining popluation of African elephants.
+April Ereckson observed a number of elephant herds in dry and wet seasons during 1998-1999 (Ereckson, 2001).
+
+We assume the data are independent given both categorical variables.
+
+**We want to examine if herding type depends on the season. Specify $H_0$ and $H_A$, and the statistical test you will use.**
+
+  $H_0$: herding type and season are independent. (The season doesn't have an influence on the herding type.)  
+  $H_A$: herding type and season are dependent.
+
+**Test at the 5\% significance level if herding type depends on the season**
+
+* Represent the data in <tt>R</tt> as a 2 x 4 table with 2 rows for the 2 seasons and 4 columns for the 4 herding types.
+```{r}
+# some code here: use m <- matrix(...)
+m <- matrix(c(196, 7, 43, 4, 195, 8, 92, 17), 
+            ncol = 4, byrow = TRUE)
+m
+```
+
+* Do the test.
+```{r}
+# use chisq.test(m, correct = FALSE)
+chisq.test(m, correct = FALSE)
+```
+
+* What is your conclusion? 
+
+  $$X^2 \sim \chi^2_{(r-1)(c-1)} | H_0$$
+  $$X^2 = 19.297,\;\;df = 3,\;\; p = 0.0002373 < 0.05$$
+  We reject $H_0$ at the 5\% significance level. There is a significant association between the season and herding types. 
+  
+**Now do a post-hoc analysis** in which you compare the herding types pairwise, at an overall 5\% significance level. Do it only for the comparison between 'Family with male' and 'Group of males'.
+
+```{r}
+chisq.test(m[, c(2, 4)], correct = TRUE)
+```
+
+With 4 herding types, we can do 6 pairwise comparisons. $p = 6 \times 0.1595 > 0.05$. We conclude that the season doesn't have a significant influence on forming groups 'Family with male' or 'Group of males' at an overall 5\% significance level.
+
+
+* You will get the following warning:
+```
+Warning message:
+Chi-squared approximation may be incorrect in:
+chisq.test(m, correct = TRUE)
+```
+* What does this mean? To mitigate this you can use a Fisher's Exact Test instead of a Chi-square Test:  
+```{r}
+fisher.test(m[, c(2, 4)])
+```
+
+* What can you conclude at the 5\% significance level?
+
+ $p = 0.141 > 0.00833 \Rightarrow$ we can't reject $H_0$ at the 5\% significance level.
+ 
+
+**Make a comparison between the 2 family groups and the 2 categories with only males.**
+
+* Reformat the data as a 2 x 2 contingency table (2 rows for seasons, 2 rows for herding types)
+
+```{r}
+x <- matrix(c(203, 47, 203, 109), ncol = 2, byrow = TRUE)
+x
+```
+
+* Test if the herding types are dependent on the season, at a significance level of 5\%.
+
+```{r}
+chisq.test(x, correct = TRUE)
+```
+
+* What is your conclusion?  
+  The season has a significant influence on the formation of family groups or groups with only males at the 5\% significance level.
+  
+  
+## Exercise 12
+
+Assume a biologist has two maps covering the same region. One map shows the suitability of the soil to be used for agriculture (Fertile, Moderately Fertile, Not Fertile), the other map shows the general soil type (Alfisols, Spodosols). We want to examine the spatial relationship between these 2 maps. Consider the table below with some fictitious data of 106 soil types. Here, with soil type we mean soils which share similar physical, chemical and biological characteristics. Soils differ from each other from place to place, depending on topography, natural drainage, natural vegetation and climate.
+
+### Question 1
+**We want to examine if fertility of the soil is dependent on the soil type. Specify $H_0$ and $H_A$, and the statistical test you will use.**
+
+  $H_0$: fertility of the soil is independent of the soil type.
+  
+  $H_A$: fertility of the soil dependents on the soil type.
+
+### Question 2
+**Test at the 5\% significance level if fertility of the soil is dependent on the soil type.**
+
+* Create a dataframe with columns <tt>Soil</tt>, <tt>Fertility</tt> and <tt>Count</tt>. 
+```{r}
+soil <- data.frame(Soil = c(1, 1, 1, 2, 2, 2), 
+                   Fertility = c(1, 2, 3, 1, 2, 3), 
+                   Count = c(13, 24, 18, 19, 20, 12))
+soil
+```
+* Create a contingency table like this.
+```{r}
+soiltbl <- xtabs(Count ~ Soil + Fertility, data = soil)
+soiltbl
+```
+* Perform the test. This time just do:
+```{r}
+summary(soiltbl)
+```
+
+### Question 3
+**Now make the comparison between fertile (very or moderately) and not fertile.**
+
+* Test at the 5\% significance level if the fertility is dependent on the soil type.
+
+```{r}
+n <- matrix(c(37, 18, 39, 12), ncol = 2, byrow = TRUE)
+chisq.test(n, correct = TRUE)
+```
+
+* What is your conclusion?  
+  The soil type doesn't have a significant association with the fertility of the soil at the 5\% significance level.
+
+* Check the assumptions for performing this test  
+    - Independent observations: OK
+    - $E_{ij} \geq 5$ for at least 80\% of the cells. This is the case for all cells, so OK
+
+### Question 4
+**What is the percentage of Spodosols that are fertile? What is the percentage of infertile soils that are Alfisols?**
+
+$P(\text{fertile} | \text{Spodosols}) = \frac{37}{55} = 0.67 \Rightarrow$ 67\% of the Spodosols are fertile
+$P(\text{Alfisols} | \text{infertile}) = \frac{12}{30} = 0.4 \Rightarrow$ 40\% of the infertile soils are Alfisols
+
+
+### Question 5
+* Estimate the **relative risk** for a soil to be fertile (very or moderately) for Alfisols versus Spodisols and get the confidence interval for this relative risk. You can use:
+
+```{r}
+require(epitools)
+epitab(c(18, 37, 12, 39), method = "riskratio", conf.level = 0.95)
+```
+
+***Important note:** The relative risk for soil to be an Alfisol for fertile versus infertile soils doesn't have a meaning, because the number of Alfisols and Spodosols was chosen!*
+
+* Interpret the obtained confidence interval. Can you conclude that the soil type doesn't have an influence on the fertility? Explain.  
+  One is contained in the 95\% confidence interval, so the relative risk is not significant. The soil type doesn't have a significant influence on the fertility.
+
+### Question 6
+* Estimate the **odds ratio** of being fertile, for Alfisols versus Spodosols, and estimate a 95\% confidence interval for this odds ratio.
+```{r}
+epitab(c(18, 37, 12, 39), method = "oddsratio", conf.level = 0.95)
+```
+
+* Interpret the confidence interval.  
+  Odds ratio: The estimated odds for a soil to be fertile with Alfisols are 58\% higher than with Spodosols. One is contained in the confidence interval, so the odds ratio of fertile soils with Alfisols, relative to with Spodosols (or reverse) is not significant at the 5\% significance level.
+
+* Which of both measures of association seems the most appropriate to you to report?  
+  Both are possible, but the relative risk is a bit easier to interpret. You can use odds ratio if relative risk is not allowed, like for the odds of Alfisol soils, for fertile relative to infertile soil.
+
+
+## Exercise 13
+
+For three different medical treatments A, B and C the success of the treatment was
+observed, with the results.
+
+### Question 1
+**Explain what independence between the rows and columns means in this case.**  
+
+In each cell the expected count is $E_{ij} = \frac{n_i n_j}{n}$, when $H_0$ of independence is true. 
+$$\sum_{i, j}\frac{(O_{ij} - E_{ij})^2}{E_{ij}} \sim \chi^2_{(n_i-1)(n_j-1)}\;|\; H_0$$
+
+### Question 2
+**Test the above hypothesis, at the 5\% significance level, and at the 1\% significance level.**  
+
+```{r}
+x <- matrix(c(9, 6, 15, 8, 11, 19, 17, 3, 20), ncol = 3, byrow = TRUE)
+chisq.test(x)
+```
+There is no significant association between the treatments and the illness status at the 5\% significance level.
+There is no significant association between the treatments and the illness status at the 1\% significance level.
+
+### Question 3
+**Perform a post-hoc analysis, continuing at the overall 5\% significance level, where you compare the treatments pairwise. Use a Bonferroni correction. What can you conclude?**  
+
+```{r}
+chisq.test(x[c(1, 2), ])
+chisq.test(x[c(1, 3), ])
+chisq.test(x[c(2, 3), ])
+```
+The significance level of the individual tests has to be $\frac{5}{3}\% = 1.667\%$. For each of the pairwise comparisons there is no significant association between the application of one treatment over the other, and the illness status, at the overall 5\% significance level. 
+

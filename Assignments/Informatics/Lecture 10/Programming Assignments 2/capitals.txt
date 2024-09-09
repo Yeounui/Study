@@ -1,0 +1,50 @@
+Jackson,MS
+Oklahoma City,OK
+Dover,DE
+Saint Paul,MN
+Springfield,IL
+Little Rock,AR
+Santa Fe,NM
+Indianapolis,IN
+Annapolis,MD
+Baton Rouge,LA
+Boise,ID
+Cheyenne,WY
+Nashville,TN
+Phoenix,AZ
+Des Moines,IA
+Lansing,MI
+Topeka,KS
+Salt Lake City,UT
+Richmond,VA
+Salem,OR
+Hartford,CT
+Helena,MT
+Sacramento,CA
+Boston,MA
+Charleston,WV
+Columbia,SC
+Concord,NH
+Madison,WI
+Montpelier,VT
+Atlanta,GA
+Bismarck,ND
+Harrisburg,PA
+Tallahassee,FL
+Juneau,AK
+Frankfort,KY
+Honolulu,HI
+Lincoln,NE
+Jefferson City,MO
+Columbus,OH
+Montgomery,AL
+Providence,RI
+Pierre,SD
+Denver,CO
+Trenton,NJ
+Olympia,WA
+Raleigh,NC
+Albany,NY
+Austin,TX
+Carson City,NV
+Augusta,ME
