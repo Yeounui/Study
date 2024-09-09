@@ -1,8 +1,10 @@
 # Study
 
 This is an archive of programming what I have studied in university. It includes python, C++, R, SQL, and so on...
-'''
-my-system
+
+
+```bash
+study
 ├─ Assignments   
 │  ├─ Bioinformatics   
 │  ├─ Informatics   
@@ -14,4 +16,4 @@ my-system
    ├─ C(pp)   
    ├─ Image extraction from videos   
    └─ Practices on book   
-'''
+```
