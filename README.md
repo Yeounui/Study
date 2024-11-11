@@ -13,7 +13,7 @@ Study
 │  └─ docker_build   
 ├─ R-CNN   
 └─ Self-studies   
-   ├─ C(pp)   
+   ├─ Cpp   
    ├─ Image extraction from videos   
    └─ Practices on book   
 ```
