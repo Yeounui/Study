@@ -6,7 +6,7 @@ ARG LINUX_VER=ubuntu22.04
 FROM nvidia/cuda:${CUDA_VER}-base-${LINUX_VER}
 
 ARG LINUX_VER
-ARG PYTHON_VER
+ARG PYTHON_VER=3.11
 ARG DEBIAN_FRONTEND=noninteractive
 ENV PATH=/opt/conda/bin:$PATH
 ENV PYTHON_VERSION=${PYTHON_VER}
@@ -28,6 +28,7 @@ RUN chmod g+ws /opt/conda
 RUN <<EOF
 # Ensure new files/dirs have group write permissions
 umask 002
+
 # install expected Python version
 conda install -y -n base "python~=${PYTHON_VERSION}.0=*_cpython"
 conda update --all -y -n base
@@ -70,10 +71,11 @@ RUN <<EOF
     rm -rf /var/lib/apt/lists/*
 EOF
 
-# Conda Environment (ros_env) 설정
+# Conda Environment 설정
 RUN <<EOF
     mamba update --all --yes
-    mamba create -n ros_env python=3.11
+    mamba create -n ros_env
+    mamba create -n api_env
 EOF
 
 # ROS2 (Humble) + jupyter-ros 설치 패키지 설치
@@ -82,20 +84,15 @@ RUN <<EOF
     conda config --env --add channels robostack-staging
     conda config --env --remove channels defaults
     mamba install -n ros_env -y ros-humble-desktop \
-    mamba install -n rosdev_env -y compilers cmake pkg-config make ninja colcon-common-extensions catkin_tools rosdep
-    conda install -n rosjupyter_env -y jupyter bqplot pyyaml ipywidgets ipycanvas robostack::jupyter-ros
+                                compilers cmake pkg-config make ninja colcon-common-extensions catkin_tools rosdep
     mamba install -n api_env -y numpy pybind11
 EOF
 
-#x11 forwarding 설정
-RUN <<EOF
-echo "export DISPLAY=$(grep -m 1 nameserver /etc/resolv.conf | awk '{print $2}'):0.0" >> ~/.bashrc
-source ~/.bashrc
-EOF
+# https://jstar0525.tistory.com/333 GUI 참고
 
 # 작업 디렉토리 설정
 WORKDIR /workspace
 
+# 컨테이너 오픈 시 tini 실행 뒤 bash 실행.
 ENTRYPOINT ["tini", "--"]
-SHELL ["/bin/bash", "-c"]
 CMD [ "/bin/bash", "-c" ]
