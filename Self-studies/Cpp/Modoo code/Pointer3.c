@@ -4,10 +4,10 @@
 int main() {
     int a;
     int b;
-    int *p;
+    int *p; //p는 포인터
 
-    p = &a;
-    *p = 2;
+    p = &a; //p는 int a의 주소값과 같다.
+    *p = 2; //p의
     p = &b;
     *p = 4;
     
