@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "FileSep12.c"
+#include "CodeSep12.c"
 
 char compare(char *str1, char *str2);
 int main() {
